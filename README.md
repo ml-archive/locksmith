@@ -1,4 +1,4 @@
-# nEncrypt
+# Locksmith
 
 Nodes Encryption library using the Android KeyStore
 
