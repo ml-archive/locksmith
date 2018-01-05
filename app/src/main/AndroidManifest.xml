@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="dk.nodes.nencrypt.example">
+    package="dk.nodes.locksmith.example">
 
     <application
         android:allowBackup="true"

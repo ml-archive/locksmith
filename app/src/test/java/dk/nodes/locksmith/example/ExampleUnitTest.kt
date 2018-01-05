@@ -1,4 +1,4 @@
-package dk.nodes.nencrypt.example
+package dk.nodes.locksmith.example
 
 import org.junit.Test
 

@@ -5,7 +5,7 @@ apply plugin: 'kotlin-android-extensions'
 android {
     compileSdkVersion 26
     defaultConfig {
-        applicationId "dk.nodes.nencrypt.example"
+        applicationId "dk.nodes.locksmith.example"
         minSdkVersion 21
         targetSdkVersion 26
         versionCode 1
