@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="FingerprintDialogTitle">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/text_normal</item>
+    </style>
+
+    <style name="FingerprintDialogSubtitle">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/text_normal</item>
+    </style>
+
+    <style name="FingerprintDialogDescription">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/text_normal</item>
+    </style>
+
+    <style name="FingerprintDialogSuccess">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/text_success</item>
+    </style>
+
+    <style name="FingerprintDialogError">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/text_error</item>
+    </style>
+
+    <style name="FingerprintDialogWarn">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/text_warn</item>
+    </style>
+</resources>

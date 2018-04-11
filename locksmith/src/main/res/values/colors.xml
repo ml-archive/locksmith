@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="white">#FFF</color>
+    <color name="gray">#666</color>
+
+    <color name="text_normal">#222529</color>
+    <color name="text_hint">#42000000</color>
+    <color name="text_warn">#f4511e</color>
+    <color name="text_error">#f44336</color>
+    <color name="text_success">#4CAF50</color>
+
+    <color name="fingerprint_success">#009688</color>
+    <color name="fingerprint_error">#F4511E</color>
+    <color name="fingerprint_help">#ffeb3b</color>
+    <color name="fingerprint_normal">#1a73e8</color>
+
+    <color name="card_background">#fefefe</color>
+</resources>

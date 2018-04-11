@@ -2,7 +2,7 @@
 
 buildscript {
     ext {
-        kotlin_version = '1.2.10'
+        kotlin_version = '1.2.31'
     }
 
     repositories {
@@ -12,7 +12,7 @@ buildscript {
         maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'com.android.tools.build:gradle:3.1.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "com.squareup.spoon:spoon-runner:2.0.0-SNAPSHOT"
         classpath "com.github.dweebo:spoon-gradle-plugin:5c318830a43c01dc098b745278168e12fb55dedc"

@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">nEncrypt</string>
+
+    <string name="fingerprint_success">Fingerprint recognized</string>
+    <string name="fingerprint_description">Confirm fingerprint to continue</string>
+    <string name="fingerprint_hint">Touch sensor</string>
+
+    <string name="description_fingerprint_icon">Fingerprint icon</string>
 </resources>

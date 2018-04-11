@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">nEncrypt Example App</string>
+    <string name="title_activity_login">LoginActivity</string>
+
+    <string name="cancel">Cancel</string>
+    <string name="fingerprintDialogTitle">Login</string>
+    <string name="fingerprintDialogSubtitle">Login to your Nodes Account</string>
+    <string name="fingerprintDialogDescription">Touch the finger print sensor to authorize your account</string>
+
+    <string name="fingerprintDialogErrorMessage">Error Authenticating</string>
+    <string name="fingerprintDialogSuccessMessage">Successfully Authenticated!</string>
 </resources>
