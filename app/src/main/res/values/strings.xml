@@ -1,3 +1,15 @@
 <resources>
-    <string name="app_name">nEncrypt Example App</string>
+    <string name="app_name">Locksmith Example</string>
+
+    <string name="cancel">Cancel</string>
+    <string name="fingerprintDialogTitle">Login</string>
+    <string name="fingerprintDialogSubtitle">Login to your Nodes Account</string>
+    <string name="fingerprintDialogDescription">Touch the finger print sensor to authorize your account</string>
+
+    <string name="fingerprintDialogErrorMessage">Error Authenticating</string>
+    <string name="fingerprintDialogSuccessMessage">Successfully Authenticated!</string>
+
+    <string name="errorInvalidData">Data is not valid encrypted data</string>
+    <string name="errorGeneric">Unable to complete action</string>
+    <string name="errorUnsupportedAndroidVersion">Error: Unsupported android version.</string>
 </resources>
