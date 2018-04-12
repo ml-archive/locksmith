@@ -59,7 +59,9 @@
                     android:layout_marginTop="@dimen/margin_small"
                     android:maxLines="1"
                     tools:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam fringilla purus malesuada ullamcorper aliquam." />
+
             </LinearLayout>
+
         </LinearLayout>
 
         <TextView
@@ -78,22 +80,19 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_normal"
-
             android:background="@drawable/background_circle"
             android:backgroundTint="@color/fingerprint_normal"
             android:contentDescription="@string/description_fingerprint_icon"
             android:elevation="4dp"
-
             android:padding="@dimen/padding_medium"
             android:src="@drawable/ic_fingerprint_white_24dp" />
-
 
         <TextView
             android:id="@+id/dialogFragmentTvMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_normal"
-            android:visibility="gone"
+            android:visibility="invisible"
             tools:text="Example message goes here" />
 
         <Button

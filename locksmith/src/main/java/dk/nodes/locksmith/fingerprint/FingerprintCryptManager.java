@@ -4,8 +4,8 @@ import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
+import android.security.keystore.UserNotAuthenticatedException;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -15,7 +15,6 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 
@@ -28,115 +27,135 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
 import dk.nodes.locksmith.exceptions.CipherCreationException;
-import dk.nodes.locksmith.exceptions.InvalidDataException;
+import dk.nodes.locksmith.exceptions.LocksmithEncryptionException;
 import dk.nodes.locksmith.models.EncryptionData;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class FingerprintCryptManager {
     private static final String TAG = FingerprintCryptManager.class.getSimpleName();
 
-    private String KEY_NAME = "LockSmithFingerprintKey";
     private KeyStore keyStore;
-    private KeyGenerator keyGenerator;
-    private SecretKey key;
     private Cipher cipher;
     private FingerprintManager.CryptoObject cryptoObject;
+
+    private String KEY_NAME = "LockSmithFingerprintKey";
     private Charset charset = Charset.forName("UTF-8");
-    private final int GCM_TAG_LENGTH = 128;
-    private boolean isStarted = false;
+    private int validityDuration = 60;
 
-    public FingerprintCryptManager() {
-        try {
-            start();
-        } catch (CipherCreationException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Exposed Functions
-
-    public void start() throws CipherCreationException {
-        if (isStarted) {
-            return;
-        }
+    public void generateCypher(int validityDuration) throws CipherCreationException {
+        this.validityDuration = validityDuration;
 
         try {
-            getKeyStore();
-            getKeyGenerator();
-            generateKey();
+            generateKey(false);
             getCipher();
             generateCipher();
             generateCypherObject();
-
-            isStarted = true;
         } catch (Exception e) {
+            e.printStackTrace();
             throw new CipherCreationException();
         }
     }
 
-    public String encryptString(String data) throws IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
+    public void generateKey() throws LocksmithEncryptionException {
+        try {
+            generateKey(true);
+        } catch (Exception e) {
+            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Generic, e);
+        }
+    }
+
+    public String encryptString(String data) throws LocksmithEncryptionException {
         byte[] decryptedData = data.getBytes(charset);
         EncryptionData encryptionData = encrypt(decryptedData);
-        Log.d(TAG, "Encryption: " + encryptionData.toString());
         return encryptionData.encode();
     }
 
-    public String decryptString(String data) throws InvalidDataException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, InvalidKeyException {
+    public String decryptString(String data) throws LocksmithEncryptionException {
         EncryptionData encryptionData = new EncryptionData(data);
         byte[] decryptedData = decrypt(encryptionData.data, encryptionData.iv);
         return new String(decryptedData, charset);
     }
 
-    private EncryptionData encrypt(byte[] data) throws
-            InvalidKeyException,
-            BadPaddingException,
-            IllegalBlockSizeException {
+    private EncryptionData encrypt(byte[] data) throws LocksmithEncryptionException {
+        try {
+            keyStore.load(null);
+            SecretKey key = (SecretKey) keyStore.getKey(KEY_NAME, null);
 
-        cipher.init(Cipher.ENCRYPT_MODE, key);
+            cipher.init(Cipher.ENCRYPT_MODE, key);
 
-        byte[] resultData = cipher.doFinal(data);
-        byte[] resultIv = cipher.getIV();
+            byte[] resultData = cipher.doFinal(data);
+            byte[] resultIv = cipher.getIV();
 
-        return new EncryptionData(resultData, resultIv);
+            return new EncryptionData(resultData, resultIv);
+        } catch (NullPointerException e) {
+            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.UninitiatedCipher, e);
+        } catch (UserNotAuthenticatedException e) {
+            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Unauthenticated, e);
+        } catch (InvalidKeyException e) {
+            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.InvalidKey, e);
+        } catch (BadPaddingException e) {
+            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.BadPadding, e);
+        } catch (IllegalBlockSizeException e) {
+            if (e.getCause() instanceof KeyStoreException) {
+                throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Unauthenticated, e);
+            } else {
+                throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.IllegalBlockSize, e);
+            }
+        } catch (Exception e) {
+            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Generic, e);
+        }
     }
 
-    private byte[] decrypt(byte[] data, byte[] iv) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
-        IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
-        cipher.init(Cipher.DECRYPT_MODE, key, ivParameterSpec);
-        return cipher.doFinal(data);
+    private byte[] decrypt(byte[] data, byte[] iv) throws LocksmithEncryptionException {
+        try {
+            keyStore.load(null);
+            SecretKey key = (SecretKey) keyStore.getKey(KEY_NAME, null);
+
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+            cipher.init(Cipher.DECRYPT_MODE, key, ivParameterSpec);
+            return cipher.doFinal(data);
+        } catch (NullPointerException e) {
+            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.UninitiatedCipher, e);
+        } catch (UserNotAuthenticatedException e) {
+            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Unauthenticated, e);
+        } catch (InvalidKeyException e) {
+            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.InvalidKey, e);
+        } catch (BadPaddingException e) {
+            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.BadPadding, e);
+        } catch (IllegalBlockSizeException e) {
+            if (e.getCause() instanceof KeyStoreException) {
+                throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Unauthenticated, e);
+            } else {
+                throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.IllegalBlockSize, e);
+            }
+        } catch (InvalidAlgorithmParameterException e) {
+            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.InvalidAlgorithm, e);
+        } catch (Exception e) {
+            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Generic, e);
+        }
     }
 
-    private void getKeyStore() throws KeyStoreException {
+
+    private void generateKey(boolean withTimeValidity) throws InvalidAlgorithmParameterException, CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, NoSuchProviderException {
         keyStore = KeyStore.getInstance("AndroidKeyStore");
-    }
-
-    private void getKeyGenerator() throws NoSuchProviderException, NoSuchAlgorithmException {
-        keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
-    }
-
-    private void generateKey() throws InvalidAlgorithmParameterException, CertificateException, NoSuchAlgorithmException, IOException {
         keyStore.load(null);
 
-        keyGenerator.init(new
-                KeyGenParameterSpec.Builder(KEY_NAME,
-                KeyProperties.PURPOSE_ENCRYPT |
-                        KeyProperties.PURPOSE_DECRYPT)
-                .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                .setUserAuthenticationRequired(true)
-                .setUserAuthenticationValidityDurationSeconds(600)
-                .setEncryptionPaddings(
-                        KeyProperties.ENCRYPTION_PADDING_PKCS7)
-                .build());
+        if (!keyStore.containsAlias(KEY_NAME)) {
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
 
-        key = keyGenerator.generateKey();
+            keyGenerator.init(new KeyGenParameterSpec.Builder(KEY_NAME, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                    .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+                    .setUserAuthenticationRequired(true)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+                    .setUserAuthenticationValidityDurationSeconds(60)
+                    .build());
+
+            keyGenerator.generateKey();
+        }
     }
 
     private void getCipher() throws NoSuchPaddingException, NoSuchAlgorithmException {
-        // Generate our cypher
-        cipher = Cipher.getInstance(
-                KeyProperties.KEY_ALGORITHM_AES + "/"
-                        + KeyProperties.BLOCK_MODE_CBC + "/"
-                        + KeyProperties.ENCRYPTION_PADDING_PKCS7);
+        cipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES + "/" + KeyProperties.BLOCK_MODE_CBC + "/" + KeyProperties.ENCRYPTION_PADDING_PKCS7);
     }
 
     private void generateCipher() throws InvalidKeyException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException {

@@ -4,7 +4,7 @@ import android.util.Base64;
 
 import java.util.Arrays;
 
-import dk.nodes.locksmith.exceptions.InvalidDataException;
+import dk.nodes.locksmith.exceptions.LocksmithEncryptionException;
 
 public class EncryptionData {
     private static final String deliminator = "_";
@@ -16,7 +16,7 @@ public class EncryptionData {
         this.iv = iv;
     }
 
-    public EncryptionData(String data) throws InvalidDataException {
+    public EncryptionData(String data) throws LocksmithEncryptionException {
         String[] splitData = data.split(deliminator);
 
         System.out.print(Arrays.toString(splitData));
@@ -25,7 +25,7 @@ public class EncryptionData {
             this.data = Base64.decode(splitData[0], Base64.NO_WRAP);
             this.iv = Base64.decode(splitData[1], Base64.NO_WRAP);
         } else {
-            throw new InvalidDataException();
+            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.InvalidData);
         }
     }
 
