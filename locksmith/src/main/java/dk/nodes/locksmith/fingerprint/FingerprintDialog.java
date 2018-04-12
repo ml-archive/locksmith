@@ -33,7 +33,6 @@ import android.widget.TextView;
 import dk.nodes.locksmith.Locksmith;
 import dk.nodes.locksmith.R;
 import dk.nodes.locksmith.exceptions.CipherCreationException;
-import dk.nodes.locksmith.exceptions.LocksmithEncryptionException;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class FingerprintDialog extends DialogFragment {
@@ -93,7 +92,7 @@ public class FingerprintDialog extends DialogFragment {
         public FingerprintDialog build() throws CipherCreationException {
             fingerprintDialog.keyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
             fingerprintDialog.fingerprintManager = (FingerprintManager) context.getSystemService(Context.FINGERPRINT_SERVICE);
-            Locksmith.cryptManager.generateCypher(60);
+            fingerprintDialog.cryptManager = new FingerprintCryptManager();
 
             context = null;
 
@@ -144,7 +143,6 @@ public class FingerprintDialog extends DialogFragment {
     private TextView tvMessage;
 
     private ImageView ivFingerprint;
-
     private Button btnCancel;
 
     // Bottom Sheet
@@ -157,6 +155,7 @@ public class FingerprintDialog extends DialogFragment {
     // Fingerprint Related Stuff
     private KeyguardManager keyguardManager;
     private FingerprintManager fingerprintManager;
+    private FingerprintCryptManager cryptManager;
 
     private CancellationSignal cancellationSignal;
 
@@ -164,6 +163,7 @@ public class FingerprintDialog extends DialogFragment {
     private Handler handler = new Handler();
 
     // Values
+    private int validityDuration = 60;
     private String titleText;
     private String subtitleText;
     private String descriptionText;
@@ -291,12 +291,12 @@ public class FingerprintDialog extends DialogFragment {
             return;
         }
 
-        //authenticate();
+        authenticate();
     }
 
     public void authenticate() {
         cancellationSignal = new CancellationSignal();
-        FingerprintManager.CryptoObject cryptoObject = Locksmith.cryptManager.getCryptoObject();
+        FingerprintManager.CryptoObject cryptoObject = cryptManager.getCryptoObject();
         fingerprintManager.authenticate(cryptoObject, cancellationSignal, 0, fingerprintAuthenticationCallback, null);
     }
 
@@ -444,13 +444,10 @@ public class FingerprintDialog extends DialogFragment {
         @Override
         public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
             Log.d(TAG, "onAuthenticationSucceeded");
-            onFingerprintSuccess();
 
-            try {
-                Locksmith.cryptManager.generateKey();
-            } catch (LocksmithEncryptionException e) {
-                e.printStackTrace();
-            }
+            Locksmith.encryptionManager.init(validityDuration);
+
+            onFingerprintSuccess();
 
             fingerprintAuthenticationCallback = null;
         }

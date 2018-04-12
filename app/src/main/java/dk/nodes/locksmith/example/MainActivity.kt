@@ -6,6 +6,7 @@ import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import dk.nodes.locksmith.Locksmith
+import dk.nodes.locksmith.encryption.EncryptionManager
 import dk.nodes.locksmith.exceptions.CipherCreationException
 import dk.nodes.locksmith.exceptions.LocksmithEncryptionException
 import dk.nodes.locksmith.exceptions.LocksmithEncryptionException.Type.*
@@ -23,10 +24,10 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
 
     private var currentData = originalData
 
-    private var cryptManager: FingerprintCryptManager
+    private var cryptManager: EncryptionManager
         set(value) {}
         get() {
-            return Locksmith.cryptManager
+            return Locksmith.encryptionManager
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,6 +101,7 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
         when (e.type) {
             UninitiatedCipher,
             Unauthenticated -> {
+                Log.e(TAG, "UninitiatedCipher,Unauthenticated")
                 showFingerprintDialog()
             }
             InvalidData     -> {
@@ -111,10 +113,14 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
             BadPadding      -> {
                 Snackbar.make(mainRootContainer, R.string.errorGeneric, Snackbar.LENGTH_SHORT).show()
             }
+            Generic -> {
+                Log.e(TAG, "Generic")
+            }
         }
     }
 
     private fun showFingerprintDialog() {
+        Log.d(TAG,"showFingerprintDialog")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
             val cancelText = getString(R.string.cancel)
