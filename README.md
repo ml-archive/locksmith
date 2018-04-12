@@ -113,7 +113,7 @@ If the only thing you're looking to do is get verification for a login then the 
     }
 ```
 
-##### Step 2) Handling Errors
+##### Step 3) Handling Errors
 
 ```Kotlin
     private fun handleException(e: LocksmithEncryptionException) {
