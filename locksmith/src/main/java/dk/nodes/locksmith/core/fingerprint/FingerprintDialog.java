@@ -59,6 +59,7 @@ public class FingerprintDialog extends Dialog {
     private String cancelButtonText;
     private String successMessageText;
     private String errorMessageText;
+
     private FingerprintDialog(@NonNull Context context) {
         super(context);
         setContentView(R.layout.dialog_fingerprint);
@@ -134,6 +135,17 @@ public class FingerprintDialog extends Dialog {
     }
 
     private void checkHardware() {
+        try {
+            cryptManager = new FingerprintCryptManager();
+        } catch (CipherCreationException e) {
+            if (onFingerprintDialogEventListener != null) {
+                onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR_CIPHER);
+            }
+
+            dismiss();
+            return;
+        }
+
         if (!keyguardManager.isDeviceSecure()) {
             if (onFingerprintDialogEventListener != null) {
                 onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR_SECURE);
@@ -335,7 +347,11 @@ public class FingerprintDialog extends Dialog {
         /**
          * Is called when no finger prints are enrolled
          */
-        ERROR_ENROLLMENT
+        ERROR_ENROLLMENT,
+        /**
+         * Is called when the cipher fails to create
+         */
+        ERROR_CIPHER
     }
 
     public interface OnFingerprintDialogEventListener {
@@ -392,10 +408,9 @@ public class FingerprintDialog extends Dialog {
             return this;
         }
 
-        public FingerprintDialog build() throws CipherCreationException {
+        public FingerprintDialog build() {
             fingerprintDialog.keyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
             fingerprintDialog.fingerprintManager = (FingerprintManager) context.getSystemService(Context.FINGERPRINT_SERVICE);
-            fingerprintDialog.cryptManager = new FingerprintCryptManager();
 
             context = null;
 

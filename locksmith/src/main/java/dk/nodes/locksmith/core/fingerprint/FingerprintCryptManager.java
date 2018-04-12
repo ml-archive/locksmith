@@ -40,7 +40,6 @@ public class FingerprintCryptManager {
             generateCipher();
             generateCypherObject();
         } catch (Exception e) {
-            e.printStackTrace();
             throw new CipherCreationException();
         }
     }

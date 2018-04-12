@@ -8,7 +8,6 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import dk.nodes.locksmith.core.Locksmith
 import dk.nodes.locksmith.core.encryption.EncryptionManager
-import dk.nodes.locksmith.core.exceptions.CipherCreationException
 import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException
 import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException.Type.*
 import dk.nodes.locksmith.core.fingerprint.FingerprintDialog
@@ -141,21 +140,17 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
             val successMessage = getString(R.string.fingerprintDialogSuccessMessage)
             val errorMessage = getString(R.string.fingerprintDialogErrorMessage)
 
-            try {
-                FingerprintDialog.Builder(this)
-                        .setTitle(titleText)
-                        .setSubtitle(subtitleText)
-                        .setDescription(descriptionText)
-                        .setSuccessMessage(successMessage)
-                        .setErrorMessage(errorMessage)
-                        .setCancelText(cancelText)
-                        .setKeyValidityDuration(10)
-                        .setEventListener(this)
-                        .build()
-                        .show()
-            } catch (e: CipherCreationException) {
-                e.printStackTrace()
-            }
+            FingerprintDialog.Builder(this)
+                    .setTitle(titleText)
+                    .setSubtitle(subtitleText)
+                    .setDescription(descriptionText)
+                    .setSuccessMessage(successMessage)
+                    .setErrorMessage(errorMessage)
+                    .setCancelText(cancelText)
+                    .setKeyValidityDuration(10)
+                    .setEventListener(this)
+                    .build()
+                    .show()
         }
     }
 
@@ -181,6 +176,9 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
                 Log.w(TAG, "ERROR_HARDWARE")
             }
             FingerprintDialog.FingerprintDialogEvent.ERROR_ENROLLMENT -> {
+                Log.w(TAG, "ERROR_ENROLLMENT")
+            }
+            FingerprintDialog.FingerprintDialogEvent.ERROR_CIPHER     -> {
                 Log.w(TAG, "ERROR_ENROLLMENT")
             }
         }

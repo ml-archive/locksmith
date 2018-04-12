@@ -19,8 +19,6 @@ public class EncryptionData {
     public EncryptionData(String data) throws LocksmithEncryptionException {
         String[] splitData = data.split(deliminator);
 
-        System.out.print(Arrays.toString(splitData));
-
         if (splitData.length == 2) {
             this.data = Base64.decode(splitData[0], Base64.NO_WRAP);
             this.iv = Base64.decode(splitData[1], Base64.NO_WRAP);
