@@ -1,10 +1,10 @@
-package dk.nodes.locksmith.models;
+package dk.nodes.locksmith.core.models;
 
 import android.util.Base64;
 
 import java.util.Arrays;
 
-import dk.nodes.locksmith.exceptions.LocksmithEncryptionException;
+import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException;
 
 public class EncryptionData {
     private static final String deliminator = "_";

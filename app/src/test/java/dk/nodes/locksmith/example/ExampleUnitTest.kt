@@ -1,4 +1,4 @@
-package dk.nodes.locksmith.example
+package dk.nodes.locksmith.core.example
 
 import org.junit.Test
 

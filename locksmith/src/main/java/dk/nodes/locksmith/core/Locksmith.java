@@ -1,35 +1,18 @@
-package dk.nodes.locksmith;
+package dk.nodes.locksmith.core;
 
 import android.content.Context;
 import android.os.Build;
-import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
-import dk.nodes.locksmith.encryption.EncryptionManager;
+import dk.nodes.locksmith.core.encryption.EncryptionManager;
 
 public class Locksmith {
-    private static Locksmith instance;
-    @NonNull
+    @Nullable
     public static EncryptionManager encryptionManager;
 
-    /**
-     * Static stuff
-     */
-
     public static void init(Context context) {
-        instance = new Locksmith(context);
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             encryptionManager = new EncryptionManager();
         }
-    }
-
-    public static Locksmith getInstance() {
-        return instance;
-    }
-
-    // Normal Class Stuff
-
-    private Locksmith(Context context) {
-
     }
 }

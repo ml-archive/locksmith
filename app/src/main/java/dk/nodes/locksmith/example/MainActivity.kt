@@ -1,17 +1,17 @@
 package dk.nodes.locksmith.example
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import dk.nodes.locksmith.Locksmith
-import dk.nodes.locksmith.encryption.EncryptionManager
-import dk.nodes.locksmith.exceptions.CipherCreationException
-import dk.nodes.locksmith.exceptions.LocksmithEncryptionException
-import dk.nodes.locksmith.exceptions.LocksmithEncryptionException.Type.*
-import dk.nodes.locksmith.fingerprint.FingerprintCryptManager
-import dk.nodes.locksmith.fingerprint.FingerprintDialog
+import dk.nodes.locksmith.core.Locksmith
+import dk.nodes.locksmith.core.encryption.EncryptionManager
+import dk.nodes.locksmith.core.exceptions.CipherCreationException
+import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException
+import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException.Type.*
+import dk.nodes.locksmith.core.fingerprint.FingerprintDialog
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogEventListener {
@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
 
     private var currentData = originalData
 
-    private var cryptManager: EncryptionManager
+    private var cryptManager: EncryptionManager?
         set(value) {}
         get() {
             return Locksmith.encryptionManager
@@ -51,6 +51,7 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
     }
 
 
+    @SuppressLint("NewApi")
     private fun encryptData() {
         Log.d(TAG, "encryptData")
 
@@ -65,7 +66,7 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
         }
 
         try {
-            currentData = cryptManager.encryptString(currentData) ?: ""
+            currentData = cryptManager?.encryptString(currentData) ?: ""
         } catch (e: LocksmithEncryptionException) {
             handleException(e)
         }
@@ -73,6 +74,7 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
         updateTextView()
     }
 
+    @SuppressLint("NewApi")
     private fun decryptData() {
         Log.d(TAG, "decryptData")
 
@@ -86,7 +88,7 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
         }
 
         try {
-            currentData = cryptManager.decryptString(currentData) ?: ""
+            currentData = cryptManager?.decryptString(currentData) ?: ""
         } catch (e: LocksmithEncryptionException) {
             handleException(e)
         }
@@ -105,22 +107,30 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
                 showFingerprintDialog()
             }
             InvalidData     -> {
-                Snackbar.make(mainRootContainer, R.string.errorInvalidData, Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(
+                        mainRootContainer,
+                        R.string.errorInvalidData,
+                        Snackbar.LENGTH_SHORT
+                ).show()
             }
             InvalidKey,
             InvalidAlgorithm,
             IllegalBlockSize,
             BadPadding      -> {
-                Snackbar.make(mainRootContainer, R.string.errorGeneric, Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(
+                        mainRootContainer,
+                        R.string.errorGeneric,
+                        Snackbar.LENGTH_SHORT
+                ).show()
             }
-            Generic -> {
+            Generic         -> {
                 Log.e(TAG, "Generic")
             }
         }
     }
 
     private fun showFingerprintDialog() {
-        Log.d(TAG,"showFingerprintDialog")
+        Log.d(TAG, "showFingerprintDialog")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
             val cancelText = getString(R.string.cancel)

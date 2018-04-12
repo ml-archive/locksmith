@@ -1,4 +1,4 @@
-package dk.nodes.locksmith.exceptions;
+package dk.nodes.locksmith.core.exceptions;
 
 import android.support.annotation.NonNull;
 

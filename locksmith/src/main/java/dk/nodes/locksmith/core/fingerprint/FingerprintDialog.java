@@ -1,4 +1,4 @@
-package dk.nodes.locksmith.fingerprint;
+package dk.nodes.locksmith.core.fingerprint;
 
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -30,9 +30,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import dk.nodes.locksmith.Locksmith;
 import dk.nodes.locksmith.R;
-import dk.nodes.locksmith.exceptions.CipherCreationException;
+import dk.nodes.locksmith.core.Locksmith;
+import dk.nodes.locksmith.core.exceptions.CipherCreationException;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class FingerprintDialog extends DialogFragment {

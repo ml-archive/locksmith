@@ -1,4 +1,4 @@
-package dk.nodes.locksmith.fingerprint;
+package dk.nodes.locksmith.core.fingerprint;
 
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
@@ -21,7 +21,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
-import dk.nodes.locksmith.exceptions.CipherCreationException;
+import dk.nodes.locksmith.core.exceptions.CipherCreationException;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class FingerprintCryptManager {

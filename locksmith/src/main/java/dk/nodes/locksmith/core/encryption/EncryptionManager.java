@@ -1,4 +1,4 @@
-package dk.nodes.locksmith.encryption;
+package dk.nodes.locksmith.core.encryption;
 
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
@@ -20,8 +20,8 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
-import dk.nodes.locksmith.exceptions.LocksmithEncryptionException;
-import dk.nodes.locksmith.models.EncryptionData;
+import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException;
+import dk.nodes.locksmith.core.models.EncryptionData;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class EncryptionManager {

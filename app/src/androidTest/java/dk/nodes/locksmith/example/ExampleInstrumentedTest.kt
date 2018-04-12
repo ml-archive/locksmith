@@ -1,4 +1,4 @@
-package dk.nodes.locksmith.example
+package dk.nodes.locksmith.core.example
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
