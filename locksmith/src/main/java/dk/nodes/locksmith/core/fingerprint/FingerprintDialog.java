@@ -1,10 +1,8 @@
 package dk.nodes.locksmith.core.fingerprint;
 
 import android.app.Dialog;
-import android.app.DialogFragment;
 import android.app.KeyguardManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -15,16 +13,14 @@ import android.os.CancellationSignal;
 import android.os.Handler;
 import android.support.annotation.ColorRes;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.annotation.StyleRes;
-import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -35,18 +31,17 @@ import dk.nodes.locksmith.core.Locksmith;
 import dk.nodes.locksmith.core.exceptions.CipherCreationException;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class FingerprintDialog extends DialogFragment {
+public class FingerprintDialog extends Dialog {
     private static final String TAG = FingerprintDialog.class.getSimpleName();
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public static class Builder {
-        int validityTime = 60;
         FingerprintDialog fingerprintDialog;
         Context context;
 
         public Builder(Context context) {
             this.context = context;
-            this.fingerprintDialog = new FingerprintDialog();
+            this.fingerprintDialog = new FingerprintDialog(context);
         }
 
         public Builder setEventListener(OnFingerprintDialogEventListener onFingerprintDialogEventListener) {
@@ -69,8 +64,8 @@ public class FingerprintDialog extends DialogFragment {
             return this;
         }
 
-        public Builder setKeyValidityDuration(int time) {
-            this.validityTime = time;
+        public Builder setKeyValidityDuration(int validityDuration) {
+            fingerprintDialog.validityDuration = validityDuration;
             return this;
         }
 
@@ -145,12 +140,8 @@ public class FingerprintDialog extends DialogFragment {
     private ImageView ivFingerprint;
     private Button btnCancel;
 
-    // Bottom Sheet
-    private BottomSheetBehavior bottomSheetBehavior;
-
     // Callbacks
     private FingerprintAuthenticationCallback fingerprintAuthenticationCallback = new FingerprintAuthenticationCallback();
-    private BottomSheetCallback bottomSheetCallback = new BottomSheetCallback();
 
     // Fingerprint Related Stuff
     private KeyguardManager keyguardManager;
@@ -172,76 +163,61 @@ public class FingerprintDialog extends DialogFragment {
     private String errorMessageText;
 
 
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        Log.d(TAG, "onCreateView");
-        return inflater.inflate(R.layout.dialog_fingerprint, container, false);
+    private FingerprintDialog(@NonNull Context context) {
+        super(context);
+        setContentView(R.layout.dialog_fingerprint);
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        Log.d(TAG, "onViewCreated");
-
-        super.onViewCreated(view, savedInstanceState);
+    public void onAttachedToWindow() {
+        super.onAttachedToWindow();
 
         setupWindowStyle();
 
-        bindViews(view);
+        bindViews();
 
         setupViews();
 
         checkHardware();
+
+        startShowAnimation();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        setRetainInstance(true);
-
-        setStyle(DialogFragment.STYLE_NO_FRAME, android.R.style.Theme_Material_Light_Dialog);
-
     }
 
     private void setupWindowStyle() {
-        Dialog dialog = getDialog();
+        Window window = getWindow();
 
-        if (dialog != null) {
-            dialog.setCancelable(true);
-
-            Window window = dialog.getWindow();
-
-            if (window != null) {
-                window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                window.setDimAmount(0.7f);
-            }
+        if (window != null) {
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            window.setDimAmount(0.7f);
         }
     }
 
-    private void bindViews(View view) {
-        mainContainer = view.findViewById(R.id.dialogFragmentMainContainer);
+    private void bindViews() {
+        if (getWindow() == null) {
+            dismiss();
+            return;
+        }
 
-        tvTitle = view.findViewById(R.id.dialogFragmentTvTitle);
-        tvSubtitle = view.findViewById(R.id.dialogFragmentTvSubtitle);
-        tvDescription = view.findViewById(R.id.dialogFragmentTvDescription);
-        tvMessage = view.findViewById(R.id.dialogFragmentTvMessage);
+        mainContainer = getWindow().findViewById(R.id.dialogFragmentMainContainer);
 
-        ivFingerprint = view.findViewById(R.id.dialogFragmentIvFingerprint);
+        tvTitle = getWindow().findViewById(R.id.dialogFragmentTvTitle);
+        tvSubtitle = getWindow().findViewById(R.id.dialogFragmentTvSubtitle);
+        tvDescription = getWindow().findViewById(R.id.dialogFragmentTvDescription);
+        tvMessage = getWindow().findViewById(R.id.dialogFragmentTvMessage);
 
-        btnCancel = view.findViewById(R.id.dialogFragmentBtnCancel);
+        ivFingerprint = getWindow().findViewById(R.id.dialogFragmentIvFingerprint);
+
+        btnCancel = getWindow().findViewById(R.id.dialogFragmentBtnCancel);
     }
 
     private void setupViews() {
-        // Setup Bottom Sheet
-        bottomSheetBehavior = BottomSheetBehavior.from(mainContainer);
-
-        bottomSheetBehavior.setPeekHeight(0);
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-        bottomSheetBehavior.setBottomSheetCallback(bottomSheetCallback);
-
-
         // If our cancel button is setup then we should show it and add the values
+
         if (cancelButtonText != null) {
             btnCancel.setText(cancelButtonText);
         }
@@ -263,7 +239,7 @@ public class FingerprintDialog extends DialogFragment {
 
     // Fingerprint Methods
 
-    public void checkHardware() {
+    private void checkHardware() {
         if (!keyguardManager.isDeviceSecure()) {
             if (onFingerprintDialogEventListener != null) {
                 onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR_SECURE);
@@ -294,7 +270,7 @@ public class FingerprintDialog extends DialogFragment {
         authenticate();
     }
 
-    public void authenticate() {
+    private void authenticate() {
         cancellationSignal = new CancellationSignal();
         FingerprintManager.CryptoObject cryptoObject = cryptManager.getCryptoObject();
         fingerprintManager.authenticate(cryptoObject, cancellationSignal, 0, fingerprintAuthenticationCallback, null);
@@ -346,11 +322,9 @@ public class FingerprintDialog extends DialogFragment {
 
         Context context = getContext();
 
-        if (context != null) {
-            int color = ContextCompat.getColor(context, colorRes);
-            ColorStateList stateList = ColorStateList.valueOf(color);
-            ivFingerprint.setBackgroundTintList(stateList);
-        }
+        int color = ContextCompat.getColor(context, colorRes);
+        ColorStateList stateList = ColorStateList.valueOf(color);
+        ivFingerprint.setBackgroundTintList(stateList);
     }
 
     // Dialog Finishers
@@ -376,7 +350,7 @@ public class FingerprintDialog extends DialogFragment {
     }
 
     private void onCancelClicked(View view) {
-        Log.d(TAG, "onCancelClicked");
+        Log.d(TAG, "onCancelClicked: " + view);
 
         if (onFingerprintDialogEventListener != null) {
             onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.CANCEL);
@@ -386,46 +360,59 @@ public class FingerprintDialog extends DialogFragment {
     }
 
     private void closeDialog() {
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        startCloseAnimation();
+        cancelSignal();
     }
 
     // Event overrides
 
     @Override
-    public void onDismiss(DialogInterface dialog) {
-        Log.d(TAG, "onDismiss");
-
-        if (cancellationSignal != null) {
-            cancellationSignal.cancel();
-        }
-
-        super.onDismiss(dialog);
+    protected void onStop() {
+        cancelSignal();
+        super.onStop();
     }
 
-    @Override
-    public void onDestroy() {
 
-        if (cancellationSignal != null) {
+    // Cancel Signal
+
+    private void cancelSignal() {
+        if (cancellationSignal != null && !cancellationSignal.isCanceled()) {
             cancellationSignal.cancel();
         }
-
-        super.onDestroy();
     }
 
-    // Bottom Sheet Dialog Callbacks
+    // Animation Functions
 
-    public class BottomSheetCallback extends BottomSheetBehavior.BottomSheetCallback {
-        @Override
-        public void onStateChanged(@NonNull View bottomSheet, int newState) {
-            if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
-                dismiss();
+    private void startShowAnimation() {
+        Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_up);
+        mainContainer.startAnimation(animation);
+    }
+
+    private void startCloseAnimation() {
+        Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_down);
+
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
             }
-        }
 
-        @Override
-        public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                onCloseAnimationFinished();
+            }
 
-        }
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+        mainContainer.startAnimation(animation);
+    }
+
+    private void onCloseAnimationFinished() {
+        dismiss();
     }
 
     public class FingerprintAuthenticationCallback extends FingerprintManager.AuthenticationCallback {

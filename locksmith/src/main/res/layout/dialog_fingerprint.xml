@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/dialogFragmentRootContainer"
     android:layout_width="match_parent"
@@ -12,12 +11,12 @@
         android:id="@+id/dialogFragmentMainContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center"
         android:background="@drawable/background_card"
         android:elevation="4dp"
         android:gravity="center_horizontal"
         android:minWidth="10000dp"
-        android:orientation="vertical"
-        app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
+        android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -91,7 +90,7 @@
             android:id="@+id/dialogFragmentTvMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_normal"
+            android:layout_marginTop="@dimen/margin_medium"
             android:visibility="invisible"
             tools:text="Example message goes here" />
 
@@ -100,10 +99,10 @@
             style="?android:attr/buttonBarNegativeButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_normal"
+            android:layout_marginBottom="@dimen/margin_medium"
             android:layout_marginTop="@dimen/margin_normal"
             tools:text="Cancel" />
 
     </LinearLayout>
 
-</android.support.design.widget.CoordinatorLayout>
+</FrameLayout>

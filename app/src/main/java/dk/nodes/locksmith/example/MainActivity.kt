@@ -152,7 +152,7 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
                         .setKeyValidityDuration(10)
                         .setEventListener(this)
                         .build()
-                        .show(fragmentManager, "FingerprintDialog")
+                        .show()
             } catch (e: CipherCreationException) {
                 e.printStackTrace()
             }
