@@ -8,14 +8,11 @@ buildscript {
     repositories {
         google()
         jcenter()
-        maven { url "https://jitpack.io" }
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.1.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "com.squareup.spoon:spoon-runner:2.0.0-SNAPSHOT"
-        classpath "com.github.dweebo:spoon-gradle-plugin:5c318830a43c01dc098b745278168e12fb55dedc"
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.9.0"
     }
 }
 
