@@ -3,6 +3,24 @@ package dk.nodes.locksmith.core.exceptions;
 import android.support.annotation.NonNull;
 
 public class LocksmithEncryptionException extends Exception {
+    @NonNull
+    public final Type type;
+
+    public LocksmithEncryptionException(Type type, Exception exception) {
+        super(type.toString(), exception);
+        this.type = type;
+    }
+
+    public LocksmithEncryptionException(Type type) {
+        super(type.toString());
+        this.type = type;
+    }
+
+    @NonNull
+    public Type getType() {
+        return type;
+    }
+
     public enum Type {
         /**
          * Will return this type if key has expired (will usually require you to go through the fingerprint validation sequence again)
@@ -32,24 +50,9 @@ public class LocksmithEncryptionException extends Exception {
          * Will return this type if the cipher was not properly initiated
          */
         UninitiatedCipher,
+        /**
+         * Thrown when an unknown error is caught
+         */
         Generic
-    }
-
-    @NonNull
-    public final Type type;
-
-    public LocksmithEncryptionException(Type type, Exception exception) {
-        super(type.toString(), exception);
-        this.type = type;
-    }
-
-    public LocksmithEncryptionException(Type type) {
-        super(type.toString());
-        this.type = type;
-    }
-
-    @NonNull
-    public Type getType() {
-        return type;
     }
 }

@@ -15,7 +15,6 @@ import android.support.annotation.ColorRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.annotation.StyleRes;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -33,126 +32,25 @@ import dk.nodes.locksmith.core.exceptions.CipherCreationException;
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class FingerprintDialog extends Dialog {
     private static final String TAG = FingerprintDialog.class.getSimpleName();
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public static class Builder {
-        FingerprintDialog fingerprintDialog;
-        Context context;
-
-        public Builder(Context context) {
-            this.context = context;
-            this.fingerprintDialog = new FingerprintDialog(context);
-        }
-
-        public Builder setEventListener(OnFingerprintDialogEventListener onFingerprintDialogEventListener) {
-            fingerprintDialog.onFingerprintDialogEventListener = onFingerprintDialogEventListener;
-            return this;
-        }
-
-        public Builder setCancelText(String text) {
-            fingerprintDialog.cancelButtonText = text;
-            return this;
-        }
-
-        public Builder setSuccessMessage(String message) {
-            fingerprintDialog.successMessageText = message;
-            return this;
-        }
-
-        public Builder setErrorMessage(String message) {
-            fingerprintDialog.errorMessageText = message;
-            return this;
-        }
-
-        public Builder setKeyValidityDuration(int validityDuration) {
-            fingerprintDialog.validityDuration = validityDuration;
-            return this;
-        }
-
-        public Builder setTitle(String text) {
-            fingerprintDialog.titleText = text;
-            return this;
-        }
-
-        public Builder setSubtitle(String text) {
-            fingerprintDialog.subtitleText = text;
-            return this;
-        }
-
-        public Builder setDescription(String text) {
-            fingerprintDialog.descriptionText = text;
-            return this;
-        }
-
-        public FingerprintDialog build() throws CipherCreationException {
-            fingerprintDialog.keyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
-            fingerprintDialog.fingerprintManager = (FingerprintManager) context.getSystemService(Context.FINGERPRINT_SERVICE);
-            fingerprintDialog.cryptManager = new FingerprintCryptManager();
-
-            context = null;
-
-            return fingerprintDialog;
-        }
-    }
-
-    public enum FingerprintDialogEvent {
-        /**
-         * Is called when a user cancels the dialog
-         */
-        CANCEL,
-        /**
-         * Is called when a fingerprint is succesfully accepted
-         */
-        SUCCESS,
-        /**
-         * Is called when a fingerprint is read but not accepted
-         */
-        ERROR,
-        /**
-         * Is called when the lock screen is not secured by a code/fingerprint
-         */
-        ERROR_SECURE,
-        /**
-         * Is sent when there is no hardware detected¬
-         */
-        ERROR_HARDWARE,
-        /**
-         * Is called when no finger prints are enrolled
-         */
-        ERROR_ENROLLMENT
-    }
-
-    public interface OnFingerprintDialogEventListener {
-        void onFingerprintEvent(@NonNull FingerprintDialogEvent event);
-    }
-
     // Listeners
     private OnFingerprintDialogEventListener onFingerprintDialogEventListener;
-
     // Views
     private LinearLayout mainContainer;
-
     private TextView tvTitle;
     private TextView tvSubtitle;
     private TextView tvDescription;
     private TextView tvMessage;
-
     private ImageView ivFingerprint;
     private Button btnCancel;
-
     // Callbacks
     private FingerprintAuthenticationCallback fingerprintAuthenticationCallback = new FingerprintAuthenticationCallback();
-
     // Fingerprint Related Stuff
     private KeyguardManager keyguardManager;
     private FingerprintManager fingerprintManager;
     private FingerprintCryptManager cryptManager;
-
     private CancellationSignal cancellationSignal;
-
     // Handler
     private Handler handler = new Handler();
-
     // Values
     private int validityDuration = 60;
     private String titleText;
@@ -161,8 +59,6 @@ public class FingerprintDialog extends Dialog {
     private String cancelButtonText;
     private String successMessageText;
     private String errorMessageText;
-
-
     private FingerprintDialog(@NonNull Context context) {
         super(context);
         setContentView(R.layout.dialog_fingerprint);
@@ -237,8 +133,6 @@ public class FingerprintDialog extends Dialog {
         btnCancel.setOnClickListener(this::onCancelClicked);
     }
 
-    // Fingerprint Methods
-
     private void checkHardware() {
         if (!keyguardManager.isDeviceSecure()) {
             if (onFingerprintDialogEventListener != null) {
@@ -289,6 +183,8 @@ public class FingerprintDialog extends Dialog {
         }
     }
 
+    // Fingerprint Methods
+
     private void onFingerprintError() {
         setFingerprintBackgroundTint(R.color.fingerprint_error);
 
@@ -309,8 +205,6 @@ public class FingerprintDialog extends Dialog {
         setTvMessageWithStyle(helpString, R.style.FingerprintDialogWarn);
     }
 
-    // Helpers
-
     private void setTvMessageWithStyle(String message, @StyleRes int styleRes) {
         tvMessage.setVisibility(View.VISIBLE);
         tvMessage.setText(message);
@@ -322,12 +216,10 @@ public class FingerprintDialog extends Dialog {
 
         Context context = getContext();
 
-        int color = ContextCompat.getColor(context, colorRes);
+        int color = context.getResources().getColor(colorRes, null);
         ColorStateList stateList = ColorStateList.valueOf(color);
         ivFingerprint.setBackgroundTintList(stateList);
     }
-
-    // Dialog Finishers
 
     private void finishDialogSuccess() {
         Log.d(TAG, "finishDialogSuccess");
@@ -338,6 +230,8 @@ public class FingerprintDialog extends Dialog {
 
         closeDialog();
     }
+
+    // Helpers
 
     private void finishDialogError() {
         Log.d(TAG, "finishDialogError");
@@ -359,12 +253,12 @@ public class FingerprintDialog extends Dialog {
         closeDialog();
     }
 
+    // Dialog Finishers
+
     private void closeDialog() {
         startCloseAnimation();
         cancelSignal();
     }
-
-    // Event overrides
 
     @Override
     protected void onStop() {
@@ -372,21 +266,18 @@ public class FingerprintDialog extends Dialog {
         super.onStop();
     }
 
-
-    // Cancel Signal
-
     private void cancelSignal() {
         if (cancellationSignal != null && !cancellationSignal.isCanceled()) {
             cancellationSignal.cancel();
         }
     }
 
-    // Animation Functions
-
     private void startShowAnimation() {
         Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_up);
         mainContainer.startAnimation(animation);
     }
+
+    // Event overrides
 
     private void startCloseAnimation() {
         Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_down);
@@ -411,8 +302,105 @@ public class FingerprintDialog extends Dialog {
         mainContainer.startAnimation(animation);
     }
 
+
+    // Cancel Signal
+
     private void onCloseAnimationFinished() {
         dismiss();
+    }
+
+    // Animation Functions
+
+    public enum FingerprintDialogEvent {
+        /**
+         * Is called when a user cancels the dialog
+         */
+        CANCEL,
+        /**
+         * Is called when a fingerprint is succesfully accepted
+         */
+        SUCCESS,
+        /**
+         * Is called when a fingerprint is read but not accepted
+         */
+        ERROR,
+        /**
+         * Is called when the lock screen is not secured by a code/fingerprint
+         */
+        ERROR_SECURE,
+        /**
+         * Is sent when there is no hardware detected¬
+         */
+        ERROR_HARDWARE,
+        /**
+         * Is called when no finger prints are enrolled
+         */
+        ERROR_ENROLLMENT
+    }
+
+    public interface OnFingerprintDialogEventListener {
+        void onFingerprintEvent(@NonNull FingerprintDialogEvent event);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public static class Builder {
+        FingerprintDialog fingerprintDialog;
+        Context context;
+
+        public Builder(Context context) {
+            this.context = context;
+            this.fingerprintDialog = new FingerprintDialog(context);
+        }
+
+        public Builder setEventListener(OnFingerprintDialogEventListener onFingerprintDialogEventListener) {
+            fingerprintDialog.onFingerprintDialogEventListener = onFingerprintDialogEventListener;
+            return this;
+        }
+
+        public Builder setCancelText(String text) {
+            fingerprintDialog.cancelButtonText = text;
+            return this;
+        }
+
+        public Builder setSuccessMessage(String message) {
+            fingerprintDialog.successMessageText = message;
+            return this;
+        }
+
+        public Builder setErrorMessage(String message) {
+            fingerprintDialog.errorMessageText = message;
+            return this;
+        }
+
+        public Builder setKeyValidityDuration(int validityDuration) {
+            fingerprintDialog.validityDuration = validityDuration;
+            return this;
+        }
+
+        public Builder setTitle(String text) {
+            fingerprintDialog.titleText = text;
+            return this;
+        }
+
+        public Builder setSubtitle(String text) {
+            fingerprintDialog.subtitleText = text;
+            return this;
+        }
+
+        public Builder setDescription(String text) {
+            fingerprintDialog.descriptionText = text;
+            return this;
+        }
+
+        public FingerprintDialog build() throws CipherCreationException {
+            fingerprintDialog.keyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
+            fingerprintDialog.fingerprintManager = (FingerprintManager) context.getSystemService(Context.FINGERPRINT_SERVICE);
+            fingerprintDialog.cryptManager = new FingerprintCryptManager();
+
+            context = null;
+
+            return fingerprintDialog;
+        }
     }
 
     public class FingerprintAuthenticationCallback extends FingerprintManager.AuthenticationCallback {
