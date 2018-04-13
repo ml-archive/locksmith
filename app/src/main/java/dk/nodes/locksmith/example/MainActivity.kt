@@ -23,12 +23,6 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
 
     private var currentData = originalData
 
-    private var cryptManager: EncryptionManager?
-        set(value) {}
-        get() {
-            return Locksmith.encryptionManager
-        }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -65,7 +59,7 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
         }
 
         try {
-            currentData = cryptManager?.encryptString(currentData) ?: ""
+            currentData = Locksmith.encrypt(currentData)
         } catch (e: LocksmithEncryptionException) {
             handleException(e)
         }
@@ -87,7 +81,7 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
         }
 
         try {
-            currentData = cryptManager?.decryptString(currentData) ?: ""
+            currentData = Locksmith.decrypt(currentData)
         } catch (e: LocksmithEncryptionException) {
             handleException(e)
         }

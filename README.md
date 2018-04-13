@@ -16,7 +16,7 @@ The library itself is written in Java but most of the examples you'll find here 
 
 ##### Step 1) Fingerprint Authentication
 ```Kotlin
-    private fun showFingerprintDialog{
+    private fun showFingerprintDialog(){
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             FingerprintDialog.Builder(this) // Provide context for our dialog
                     .setTitle(titleText) // Title Text
@@ -91,7 +91,7 @@ If the only thing you're looking to do is get verification for a login then the 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 val testString = "Test"
-                val encryptedData = Locksmith.cryptManager?.encryptString(testString)
+                val encryptedData = Locksmith.encrypt(testString)
             } catch (e: LocksmithEncryptionException) {
                 handleException(e) // See step 3 for how to handle errors
             }
@@ -105,7 +105,7 @@ If the only thing you're looking to do is get verification for a login then the 
     private fun decryptData() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
-                val decryptedData = Locksmith.cryptManager?.encryptString(encryptedData)
+                val decryptedData = Locksmith.decrypt(encryptedData)
             } catch (e: LocksmithEncryptionException) {
                 handleException(e) // See step 3 for how to handle errors
             }
