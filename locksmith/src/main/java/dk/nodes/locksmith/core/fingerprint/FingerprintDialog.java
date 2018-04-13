@@ -131,7 +131,12 @@ public class FingerprintDialog extends Dialog {
             tvDescription.setText(descriptionText);
         }
 
-        btnCancel.setOnClickListener(this::onCancelClicked);
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onCancelClicked();
+            }
+        });
     }
 
     private void checkHardware() {
@@ -189,7 +194,12 @@ public class FingerprintDialog extends Dialog {
         if (successMessageText != null) {
             setTvMessageWithStyle(successMessageText, R.style.FingerprintDialogSuccess);
             btnCancel.setEnabled(false);
-            handler.postDelayed(this::finishDialogSuccess, 1000);
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    finishDialogSuccess();
+                }
+            }, 1000);
         } else {
             finishDialogSuccess();
         }
@@ -203,7 +213,12 @@ public class FingerprintDialog extends Dialog {
         if (errorMessageText != null) {
             setTvMessageWithStyle(errorMessageText, R.style.FingerprintDialogError);
             btnCancel.setEnabled(false);
-            handler.postDelayed(this::finishDialogError, 1000);
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    finishDialogError();
+                }
+            }, 1000);
         } else {
             finishDialogError();
         }
@@ -255,8 +270,8 @@ public class FingerprintDialog extends Dialog {
         closeDialog();
     }
 
-    private void onCancelClicked(View view) {
-        Log.d(TAG, "onCancelClicked: " + view);
+    private void onCancelClicked() {
+        Log.d(TAG, "onCancelClicked");
 
         if (onFingerprintDialogEventListener != null) {
             onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.CANCEL);
