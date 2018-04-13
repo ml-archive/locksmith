@@ -1,3 +1,5 @@
+![Locksmith Badge](https://img.shields.io/maven-central/v/dk.nodes.locksmith/core.svg)
+
 # Locksmith
 
 Nodes Encryption library using the Android KeyStore
