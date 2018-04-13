@@ -7,7 +7,6 @@ import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import dk.nodes.locksmith.core.Locksmith
-import dk.nodes.locksmith.core.encryption.EncryptionManager
 import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException
 import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException.Type.*
 import dk.nodes.locksmith.core.fingerprint.FingerprintDialog
@@ -91,12 +90,14 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
 
     private fun handleException(e: LocksmithEncryptionException) {
         Log.e(TAG, "handleException")
-        e.printStackTrace()
-
+        
         when (e.type) {
-            UninitiatedCipher,
+            Uninitiated     -> {
+                Log.e(TAG, "Uninitiated")
+                showFingerprintDialog()
+            }
             Unauthenticated -> {
-                Log.e(TAG, "UninitiatedCipher,Unauthenticated")
+                Log.e(TAG, "Unauthenticated")
                 showFingerprintDialog()
             }
             InvalidData     -> {
@@ -106,10 +107,7 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
                         Snackbar.LENGTH_SHORT
                 ).show()
             }
-            InvalidKey,
-            InvalidAlgorithm,
-            IllegalBlockSize,
-            BadPadding      -> {
+            EncryptionError -> {
                 Snackbar.make(
                         mainRootContainer,
                         R.string.errorGeneric,
@@ -117,7 +115,7 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
                 ).show()
             }
             Generic         -> {
-                Log.e(TAG, "Generic")
+                Log.e(TAG, "Generic", e)
             }
         }
     }
@@ -134,7 +132,7 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
             val successMessage = getString(R.string.fingerprintDialogSuccessMessage)
             val errorMessage = getString(R.string.fingerprintDialogErrorMessage)
 
-            FingerprintDialog.Builder(this)
+            Locksmith.getFingerprintDialogBuilder(this)
                     .setTitle(titleText)
                     .setSubtitle(subtitleText)
                     .setDescription(descriptionText)

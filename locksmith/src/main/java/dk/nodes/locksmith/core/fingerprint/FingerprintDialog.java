@@ -26,8 +26,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import dk.nodes.locksmith.R;
-import dk.nodes.locksmith.core.Locksmith;
-import dk.nodes.locksmith.core.exceptions.CipherCreationException;
+import dk.nodes.locksmith.core.encryption.FingerprintEncryptionManager;
+import dk.nodes.locksmith.core.exceptions.LocksmithCreationException;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class FingerprintDialog extends Dialog {
@@ -45,6 +45,7 @@ public class FingerprintDialog extends Dialog {
     // Callbacks
     private FingerprintAuthenticationCallback fingerprintAuthenticationCallback = new FingerprintAuthenticationCallback();
     // Fingerprint Related Stuff
+    private FingerprintEncryptionManager fingerprintEncryptionManager;
     private KeyguardManager keyguardManager;
     private FingerprintManager fingerprintManager;
     private FingerprintCryptManager cryptManager;
@@ -142,7 +143,7 @@ public class FingerprintDialog extends Dialog {
     private void checkHardware() {
         try {
             cryptManager = new FingerprintCryptManager();
-        } catch (CipherCreationException e) {
+        } catch (LocksmithCreationException e) {
             if (onFingerprintDialogEventListener != null) {
                 onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR_CIPHER);
             }
@@ -246,6 +247,16 @@ public class FingerprintDialog extends Dialog {
         int color = context.getResources().getColor(colorRes, null);
         ColorStateList stateList = ColorStateList.valueOf(color);
         ivFingerprint.setBackgroundTintList(stateList);
+    }
+
+    private void initiateEncryptionKey() {
+        try {
+            fingerprintEncryptionManager.init(validityDuration);
+        } catch (LocksmithCreationException e) {
+            e.printStackTrace();
+        }
+
+        onFingerprintSuccess();
     }
 
     private void finishDialogSuccess() {
@@ -378,9 +389,10 @@ public class FingerprintDialog extends Dialog {
         FingerprintDialog fingerprintDialog;
         Context context;
 
-        public Builder(Context context) {
+        public Builder(Context context, FingerprintEncryptionManager fingerprintEncryptionManager) {
             this.context = context;
             this.fingerprintDialog = new FingerprintDialog(context);
+            fingerprintDialog.fingerprintEncryptionManager = fingerprintEncryptionManager;
         }
 
         public Builder setEventListener(OnFingerprintDialogEventListener onFingerprintDialogEventListener) {
@@ -449,11 +461,7 @@ public class FingerprintDialog extends Dialog {
         @Override
         public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
             Log.d(TAG, "onAuthenticationSucceeded");
-
-            Locksmith.encryptionManager.init(validityDuration);
-
-            onFingerprintSuccess();
-
+            initiateEncryptionKey();
             fingerprintAuthenticationCallback = null;
         }
 

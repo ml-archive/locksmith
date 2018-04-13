@@ -11,6 +11,10 @@ public class EncryptionData {
     public byte[] data;
     public byte[] iv;
 
+    public EncryptionData() {
+
+    }
+
     public EncryptionData(byte[] data, byte[] iv) {
         this.data = data;
         this.iv = iv;

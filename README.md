@@ -20,7 +20,7 @@ The library itself is written in Java but most of the examples you'll find here 
 ```Kotlin
     private fun showFingerprintDialog(){
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            FingerprintDialog.Builder(this) // Provide context for our dialog
+            Locksmith.getFingerprintDialogBuilder(this) // Provide context for our dialog
                     .setTitle(titleText) // Title Text
                     .setSubtitle(subtitleText) // Subtitle Text
                     .setDescription(descriptionText) // Description Text
@@ -117,30 +117,43 @@ If the only thing you're looking to do is get verification for a login then the 
 
 ##### Step 3) Handling Errors
 
-```Kotlin
-    private fun handleException(e: LocksmithEncryptionException) {
-        when (e.type) {
-            UninitiatedCipher-> {
-                // Will return this if the Fingerprint Dialog was not shown first before trying to encrypt/decrypt                          
-            }
-            Unauthenticated -> {
-                // Returns this error if the key used to encrypt/decrypt has been invalidated, if you get this error you
-                // Should show the fingerprint dialog again
-            }
-            InvalidData     -> {
-               // Will return this if the data provided is not valid encrypted data
-            }
-            InvalidKey,
-            InvalidAlgorithm,
-            IllegalBlockSize,
-            BadPadding      -> {
-               // Will return this if for whatever reason we fail to encrypt/decrypt data
-            }
-            Generic         -> {
-                // A generic catch for our error
-            }
-        }
+```Koltin
+private fun handleException(e: LocksmithEncryptionException) {
+    Log.e(TAG, "handleException")
+    
+    when (e.type) {
+       /**
+         * Will return this type if the cipher/algorithm was not properly initiated
+         */
+         
+        Uninitiated -> {}
+        
+        /**
+         * Will return this type if key has expired 
+         * (will usually require you to go through the fingerprint validation sequence again)
+         */
+         
+        Unauthenticated -> {}
+        
+        /**
+         * Will return this type if the data fed to the encrypt method isn't a valid encrypted message
+         */
+         
+        InvalidData -> {}
+        
+        /**
+         * Will return this type if the data is too long or the wrong size
+         */
+         
+        EncryptionError -> {}
+        
+        /**
+         * Thrown when an unknown error is caught
+         */
+         
+        Generic -> {}
     }
+}
 ```
 
 Because of the way Kotlin handles checked exceptions we opted to wrap all exceptions and return a ENUM with the exception as well (makes it easier)
