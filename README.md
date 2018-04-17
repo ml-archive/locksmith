@@ -134,7 +134,7 @@ The following methods are available for encrypting/decrypting data
     // Long Encrypt/Decrypt
     Locksmith.getInstance().encryptLong(data: Long): String
     Locksmith.getInstance().decryptLong(data: String): Long
-```.
+```
 
 ***Note: if you're using kotlin you need to be sure to catch `LocksmithEncryptionException` and handle the errors appropriately (see the section below for how to do that)***
 
