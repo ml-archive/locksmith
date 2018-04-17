@@ -114,6 +114,11 @@ public class EncryptedPreferences {
 
     //
 
+    public void remove(String key) {
+        String hashedKey = HashingUtils.sha256(key);
+        sharedPreferences.edit().remove(hashedKey).commit();
+    }
+
     public void clear() {
         sharedPreferences.edit().clear().commit();
     }
