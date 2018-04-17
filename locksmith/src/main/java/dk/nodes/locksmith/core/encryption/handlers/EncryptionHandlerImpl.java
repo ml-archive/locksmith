@@ -1,12 +1,12 @@
-package dk.nodes.locksmith.core.encryption;
+package dk.nodes.locksmith.core.encryption.handlers;
 
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.security.keystore.UserNotAuthenticatedException;
 import android.support.annotation.RequiresApi;
+import android.util.Log;
 
-import java.nio.charset.Charset;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
@@ -21,65 +21,72 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
+import dk.nodes.locksmith.core.encryption.EncryptionHandler;
 import dk.nodes.locksmith.core.exceptions.LocksmithCreationException;
 import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException;
 import dk.nodes.locksmith.core.models.EncryptionData;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class FingerprintEncryptionManager {
+public class EncryptionHandlerImpl implements EncryptionHandler {
+    private static final String TAG = EncryptionHandlerImpl.class.getSimpleName();
+
     private KeyStore keyStore;
     private Cipher cipher;
 
-    private String KEY_NAME_ENCRYPTION = "LockSmithFingerprintEncryptionKey";
+    private String KEY_NAME = "LockSmithEncryptionKey";
 
-    private Charset charset = Charset.forName("UTF-8");
+    public void init() throws LocksmithCreationException {
+        Log.d(TAG, "Init");
 
-    public void init(int validityDuration) throws LocksmithCreationException {
+        if (cipher != null) {
+            return;
+        }
+
         try {
             keyStore = KeyStore.getInstance("AndroidKeyStore");
             keyStore.load(null);
 
-            if (!keyStore.containsAlias(KEY_NAME_ENCRYPTION)) {
-                generateKey(KEY_NAME_ENCRYPTION, validityDuration);
+
+            if (!keyStore.containsAlias(KEY_NAME)) {
+                generateKey(KEY_NAME);
             }
 
             cipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES + "/" + KeyProperties.BLOCK_MODE_CBC + "/" + KeyProperties.ENCRYPTION_PADDING_PKCS7);
-
         } catch (Exception e) {
             throw new LocksmithCreationException(e);
         }
     }
 
-    private void generateKey(String keyName, int validityDuration) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+    private void generateKey(String keyName) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
 
         KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(keyName, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                 .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-                .setUserAuthenticationRequired(true)
-                .setUserAuthenticationValidityDurationSeconds(validityDuration);
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7);
 
         keyGenerator.init(builder.build());
 
         keyGenerator.generateKey();
     }
 
-    public String encrypt(String data) throws LocksmithEncryptionException {
-        byte[] decryptedData = data.getBytes(charset);
-        EncryptionData encryptionData = encryptBytes(decryptedData);
+    // Byte encryption stuff
+
+    public String encrypt(byte[] data) throws LocksmithEncryptionException {
+        EncryptionData encryptionData = encryptBytes(data);
         return encryptionData.encode();
     }
 
-    public String decrypt(String data) throws LocksmithEncryptionException {
+    public byte[] decrypt(String data) throws LocksmithEncryptionException {
         EncryptionData encryptionData = new EncryptionData(data);
-        byte[] decryptedData = decryptBytes(encryptionData.data, encryptionData.iv);
-        return new String(decryptedData, charset);
+        return decryptBytes(encryptionData.data, encryptionData.iv);
     }
 
     private EncryptionData encryptBytes(byte[] data) throws LocksmithEncryptionException {
         try {
+            init();
+
             keyStore.load(null);
-            SecretKey key = (SecretKey) keyStore.getKey(KEY_NAME_ENCRYPTION, null);
+            SecretKey key = (SecretKey) keyStore.getKey(KEY_NAME, null);
 
             cipher.init(Cipher.ENCRYPT_MODE, key);
 
@@ -106,8 +113,10 @@ public class FingerprintEncryptionManager {
 
     private byte[] decryptBytes(byte[] data, byte[] iv) throws LocksmithEncryptionException {
         try {
+            init();
+
             keyStore.load(null);
-            SecretKey key = (SecretKey) keyStore.getKey(KEY_NAME_ENCRYPTION, null);
+            SecretKey key = (SecretKey) keyStore.getKey(KEY_NAME, null);
 
             IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
             cipher.init(Cipher.DECRYPT_MODE, key, ivParameterSpec);
@@ -128,5 +137,4 @@ public class FingerprintEncryptionManager {
             throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Generic, e);
         }
     }
-
 }

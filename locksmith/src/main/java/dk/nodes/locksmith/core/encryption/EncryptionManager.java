@@ -1,143 +1,107 @@
 package dk.nodes.locksmith.core.encryption;
 
+import android.content.Context;
 import android.os.Build;
-import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyProperties;
-import android.security.keystore.UserNotAuthenticatedException;
-import android.support.annotation.RequiresApi;
-import android.util.Log;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-
+import dk.nodes.locksmith.core.Locksmith;
+import dk.nodes.locksmith.core.encryption.handlers.CompatEncryptionHandlerImpl;
+import dk.nodes.locksmith.core.encryption.handlers.EncryptionHandlerImpl;
+import dk.nodes.locksmith.core.encryption.handlers.FingerprintEncryptionHandlerImpl;
 import dk.nodes.locksmith.core.exceptions.LocksmithCreationException;
 import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException;
-import dk.nodes.locksmith.core.models.EncryptionData;
 
-@RequiresApi(api = Build.VERSION_CODES.M)
 public class EncryptionManager {
-    private static final String TAG = EncryptionManager.class.getSimpleName();
-
-    private KeyStore keyStore;
-    private Cipher cipher;
-
-    private String KEY_NAME = "LockSmithEncryptionKey";
-
     private Charset charset = Charset.forName("UTF-8");
+    private EncryptionHandler encryptionHandler;
 
-    public void init() throws LocksmithCreationException {
-        Log.d(TAG, "Init");
-
-        if (cipher != null) {
-            return;
-        }
-
-        try {
-            keyStore = KeyStore.getInstance("AndroidKeyStore");
-            keyStore.load(null);
-
-
-            if (!keyStore.containsAlias(KEY_NAME)) {
-                generateKey(KEY_NAME);
+    public void init(Context context) throws LocksmithCreationException {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Locksmith.getInstance().isUseFingerprint()) {
+                // If we enabled fingerprint auth then lets set our handler to that
+                encryptionHandler = new FingerprintEncryptionHandlerImpl();
+            } else {
+                // If we didn't then lets just use keystore encryption
+                encryptionHandler = new EncryptionHandlerImpl();
             }
-
-            cipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES + "/" + KeyProperties.BLOCK_MODE_CBC + "/" + KeyProperties.ENCRYPTION_PADDING_PKCS7);
-        } catch (Exception e) {
-            throw new LocksmithCreationException(e);
+        } else {
+            // If we're using below Api 23 then we need to fall back to a compat encryption version
+            encryptionHandler = new CompatEncryptionHandlerImpl(context);
         }
+
+        encryptionHandler.init();
     }
 
-    private void generateKey(String keyName) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException {
-        KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
-
-        KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(keyName, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
-                .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7);
-
-        keyGenerator.init(builder.build());
-
-        keyGenerator.generateKey();
+    private EncryptionHandler getEncryptionHandler() throws LocksmithEncryptionException {
+        if (encryptionHandler == null) {
+            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Uninitiated);
+        }
+        return encryptionHandler;
     }
 
-    public String encrypt(String data) throws LocksmithEncryptionException {
+    // String
+
+    public String encryptString(String data) throws LocksmithEncryptionException {
         byte[] decryptedData = data.getBytes(charset);
-        EncryptionData encryptionData = encryptBytes(decryptedData);
-        return encryptionData.encode();
+        return getEncryptionHandler().encrypt(decryptedData);
     }
 
-    public String decrypt(String data) throws LocksmithEncryptionException {
-        EncryptionData encryptionData = new EncryptionData(data);
-        byte[] decryptedData = decryptBytes(encryptionData.data, encryptionData.iv);
+    public String decryptString(String data) throws LocksmithEncryptionException {
+        byte[] decryptedData = getEncryptionHandler().decrypt(data);
         return new String(decryptedData, charset);
     }
 
-    private EncryptionData encryptBytes(byte[] data) throws LocksmithEncryptionException {
-        try {
-            init();
+    // Integer
 
-            keyStore.load(null);
-            SecretKey key = (SecretKey) keyStore.getKey(KEY_NAME, null);
-
-            cipher.init(Cipher.ENCRYPT_MODE, key);
-
-            byte[] resultData = cipher.doFinal(data);
-            byte[] resultIv = cipher.getIV();
-
-            return new EncryptionData(resultData, resultIv);
-        } catch (NullPointerException e) {
-            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Uninitiated, e);
-        } catch (UserNotAuthenticatedException e) {
-            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Unauthenticated, e);
-        } catch (InvalidKeyException | BadPaddingException e) {
-            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.EncryptionError, e);
-        } catch (IllegalBlockSizeException e) {
-            if (e.getCause() instanceof KeyStoreException) {
-                throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Unauthenticated, e);
-            } else {
-                throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.EncryptionError, e);
-            }
-        } catch (Exception e) {
-            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Generic, e);
-        }
+    public String encryptInt(int data) throws LocksmithEncryptionException {
+        byte[] decryptedData = ByteBuffer.allocate(4).putInt(data).array();
+        return getEncryptionHandler().encrypt(decryptedData);
     }
 
-    private byte[] decryptBytes(byte[] data, byte[] iv) throws LocksmithEncryptionException {
-        try {
-            init();
-
-            keyStore.load(null);
-            SecretKey key = (SecretKey) keyStore.getKey(KEY_NAME, null);
-
-            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
-            cipher.init(Cipher.DECRYPT_MODE, key, ivParameterSpec);
-            return cipher.doFinal(data);
-        } catch (NullPointerException e) {
-            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Uninitiated, e);
-        } catch (UserNotAuthenticatedException e) {
-            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Unauthenticated, e);
-        } catch (InvalidKeyException | BadPaddingException | InvalidAlgorithmParameterException e) {
-            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.EncryptionError, e);
-        } catch (IllegalBlockSizeException e) {
-            if (e.getCause() instanceof KeyStoreException) {
-                throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Unauthenticated, e);
-            } else {
-                throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.EncryptionError, e);
-            }
-        } catch (Exception e) {
-            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Generic, e);
-        }
+    public int decryptInt(String data) throws LocksmithEncryptionException {
+        byte[] decryptedData = getEncryptionHandler().decrypt(data);
+        return ByteBuffer.wrap(decryptedData).getInt();
     }
 
+    // Float
+
+    public String encryptFloat(float data) throws LocksmithEncryptionException {
+        byte[] decryptedData = ByteBuffer.allocate(4).putFloat(data).array();
+        return getEncryptionHandler().encrypt(decryptedData);
+    }
+
+    public float decryptFloat(String data) throws LocksmithEncryptionException {
+        byte[] decryptedData = getEncryptionHandler().decrypt(data);
+        System.out.println("Buffer Size: " + decryptedData.length);
+        return ByteBuffer.wrap(decryptedData).getFloat();
+    }
+
+    // Long
+
+    public String encryptLong(long data) throws LocksmithEncryptionException {
+        byte[] decryptedData = ByteBuffer.allocate(8).putLong(data).array();
+        return getEncryptionHandler().encrypt(decryptedData);
+    }
+
+    public long decryptLong(String data) throws LocksmithEncryptionException {
+        byte[] decryptedData = getEncryptionHandler().decrypt(data);
+        System.out.println("Buffer Size: " + decryptedData.length);
+        return ByteBuffer.wrap(decryptedData).getLong();
+    }
+
+    // Boolean
+
+    public String encryptBoolean(boolean data) throws LocksmithEncryptionException {
+        int dataInt = data ? 1 : 0;
+        byte[] decryptedData = new byte[]{(byte) dataInt};
+        return getEncryptionHandler().encrypt(decryptedData);
+    }
+
+    public boolean decryptBoolean(String data) throws LocksmithEncryptionException {
+        byte[] decryptedData = getEncryptionHandler().decrypt(data);
+        int dataInt = (int) decryptedData[0];
+        return dataInt == 1;
+    }
 }

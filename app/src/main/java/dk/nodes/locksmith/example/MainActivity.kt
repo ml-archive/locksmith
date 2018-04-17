@@ -47,18 +47,8 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
     private fun encryptData() {
         Log.d(TAG, "encryptData")
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            Log.d(TAG, "Unsupported Android Version: " + Build.VERSION.SDK_INT)
-            Snackbar.make(
-                    mainRootContainer,
-                    R.string.errorUnsupportedAndroidVersion,
-                    Snackbar.LENGTH_SHORT
-            )
-            return
-        }
-
         try {
-            currentData = Locksmith.encrypt(currentData)
+            currentData = Locksmith.getInstance().encryptString(currentData)
         } catch (e: LocksmithEncryptionException) {
             handleException(e)
         }
@@ -70,17 +60,8 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
     private fun decryptData() {
         Log.d(TAG, "decryptData")
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            Log.d(TAG, "Unsupported Android Version: " + Build.VERSION.SDK_INT)
-            Snackbar.make(
-                    mainRootContainer,
-                    R.string.errorUnsupportedAndroidVersion,
-                    Snackbar.LENGTH_SHORT
-            )
-        }
-
         try {
-            currentData = Locksmith.decrypt(currentData)
+            currentData = Locksmith.getInstance().encryptString(currentData)
         } catch (e: LocksmithEncryptionException) {
             handleException(e)
         }
@@ -90,7 +71,7 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
 
     private fun handleException(e: LocksmithEncryptionException) {
         Log.e(TAG, "handleException")
-        
+
         when (e.type) {
             Uninitiated     -> {
                 Log.e(TAG, "Uninitiated")
@@ -132,14 +113,14 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
             val successMessage = getString(R.string.fingerprintDialogSuccessMessage)
             val errorMessage = getString(R.string.fingerprintDialogErrorMessage)
 
-            Locksmith.getFingerprintDialogBuilder(this)
+            Locksmith.getInstance()
+                    .getFingerprintDialogBuilder(this)
                     .setTitle(titleText)
                     .setSubtitle(subtitleText)
                     .setDescription(descriptionText)
                     .setSuccessMessage(successMessage)
                     .setErrorMessage(errorMessage)
                     .setCancelText(cancelText)
-                    .setKeyValidityDuration(10)
                     .setEventListener(this)
                     .build()
                     .show()

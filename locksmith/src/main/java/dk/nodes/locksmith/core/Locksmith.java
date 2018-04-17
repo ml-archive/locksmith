@@ -1,67 +1,121 @@
 package dk.nodes.locksmith.core;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
-import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 
 import dk.nodes.locksmith.core.encryption.EncryptionManager;
-import dk.nodes.locksmith.core.encryption.FingerprintEncryptionManager;
+import dk.nodes.locksmith.core.exceptions.LocksmithCreationException;
 import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException;
 import dk.nodes.locksmith.core.fingerprint.FingerprintDialog;
 
+@SuppressLint("StaticFieldLeak")
 public class Locksmith {
-    @Nullable
-    private static FingerprintEncryptionManager fingerprintEncryptionManager;
-    @Nullable
-    private static EncryptionManager encryptionManager;
+    private static Locksmith locksmith;
 
-    private static boolean useFingerprint = false;
-
-    public static void init(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            fingerprintEncryptionManager = new FingerprintEncryptionManager();
-            encryptionManager = new EncryptionManager();
-        }
+    public static Locksmith getInstance() {
+        return locksmith;
     }
 
-    public static boolean isUseFingerprint() {
+    private boolean useFingerprint = false;
+    private int keyValidityDuration = 120;
+    private Context context;
+
+    private EncryptionManager encryptionManager = new EncryptionManager();
+
+    public void init() throws LocksmithCreationException {
+        encryptionManager.init(context);
+    }
+
+    // String Encrypt/Decrypt
+
+    public String encryptString(String data) throws LocksmithEncryptionException {
+        return encryptionManager.encryptString(data);
+    }
+
+    public String decryptString(String data) throws LocksmithEncryptionException {
+        return encryptionManager.decryptString(data);
+    }
+
+    // Int Encrypt/Decrypt
+
+    public String encryptInt(int data) throws LocksmithEncryptionException {
+        return encryptionManager.encryptInt(data);
+    }
+
+    public int decryptInt(String data) throws LocksmithEncryptionException {
+        return encryptionManager.decryptInt(data);
+    }
+
+    // Boolean Encrypt/Decrypt
+
+    public String encryptBoolean(boolean data) throws LocksmithEncryptionException {
+        return encryptionManager.encryptBoolean(data);
+    }
+
+    public boolean decryptBoolean(String data) throws LocksmithEncryptionException {
+        return encryptionManager.decryptBoolean(data);
+    }
+
+    // Float Encrypt/Decrypt
+
+    public String encryptFloat(float data) throws LocksmithEncryptionException {
+        return encryptionManager.encryptFloat(data);
+    }
+
+    public float decryptFloat(String data) throws LocksmithEncryptionException {
+        return encryptionManager.decryptFloat(data);
+    }
+
+    // Long Encrypt/Decrypt
+
+    public String encryptLong(long data) throws LocksmithEncryptionException {
+        return encryptionManager.encryptLong(data);
+    }
+
+    public long decryptLong(String data) throws LocksmithEncryptionException {
+        return encryptionManager.decryptLong(data);
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public FingerprintDialog.Builder getFingerprintDialogBuilder(Context context) {
+        return new FingerprintDialog.Builder(context);
+    }
+
+    // Getters
+
+    public boolean isUseFingerprint() {
         return useFingerprint;
     }
 
-    public static void setUseFingerprint(boolean useFingerprint) {
-        Locksmith.useFingerprint = useFingerprint;
+    public int getKeyValidityDuration() {
+        return keyValidityDuration;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public static String encrypt(String data) throws LocksmithEncryptionException {
-        // This call requires version M so we should assume that the encryption manager will not be null
-        assert fingerprintEncryptionManager != null;
-        assert encryptionManager != null;
+    //Builder
 
-
-        if (useFingerprint) {
-            return fingerprintEncryptionManager.encrypt(data);
-        } else {
-            return encryptionManager.encrypt(data);
+    public static class Builder {
+        public Builder(Context context) {
+            locksmith = new Locksmith();
+            locksmith.context = context;
         }
-    }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public static String decrypt(String data) throws LocksmithEncryptionException {
-        // This call requires version M so we should assume that the encryption manager will not be null
-        assert fingerprintEncryptionManager != null;
-        assert encryptionManager != null;
-
-        if (useFingerprint) {
-            return fingerprintEncryptionManager.decrypt(data);
-        } else {
-            return encryptionManager.decrypt(data);
+        @RequiresApi(Build.VERSION_CODES.M)
+        public Builder setKeyValidityDuration(int seconds) {
+            locksmith.keyValidityDuration = seconds;
+            return this;
         }
-    }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public static FingerprintDialog.Builder getFingerprintDialogBuilder(Context context) {
-        return new FingerprintDialog.Builder(context, fingerprintEncryptionManager);
+        @RequiresApi(Build.VERSION_CODES.M)
+        public Builder setUseFingerprint(boolean useFingerprint) {
+            locksmith.useFingerprint = useFingerprint;
+            return this;
+        }
+
+        public Locksmith build() {
+            return locksmith;
+        }
     }
 }

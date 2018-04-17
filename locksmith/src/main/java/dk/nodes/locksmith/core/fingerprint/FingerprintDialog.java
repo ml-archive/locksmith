@@ -26,7 +26,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import dk.nodes.locksmith.R;
-import dk.nodes.locksmith.core.encryption.FingerprintEncryptionManager;
+import dk.nodes.locksmith.core.Locksmith;
 import dk.nodes.locksmith.core.exceptions.LocksmithCreationException;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
@@ -45,15 +45,14 @@ public class FingerprintDialog extends Dialog {
     // Callbacks
     private FingerprintAuthenticationCallback fingerprintAuthenticationCallback = new FingerprintAuthenticationCallback();
     // Fingerprint Related Stuff
-    private FingerprintEncryptionManager fingerprintEncryptionManager;
     private KeyguardManager keyguardManager;
     private FingerprintManager fingerprintManager;
     private FingerprintCryptManager cryptManager;
     private CancellationSignal cancellationSignal;
     // Handler
     private Handler handler = new Handler();
+
     // Values
-    private int validityDuration = 60;
     private String titleText;
     private String subtitleText;
     private String descriptionText;
@@ -251,7 +250,7 @@ public class FingerprintDialog extends Dialog {
 
     private void initiateEncryptionKey() {
         try {
-            fingerprintEncryptionManager.init(validityDuration);
+            Locksmith.getInstance().init();
         } catch (LocksmithCreationException e) {
             e.printStackTrace();
         }
@@ -355,7 +354,7 @@ public class FingerprintDialog extends Dialog {
          */
         CANCEL,
         /**
-         * Is called when a fingerprint is succesfully accepted
+         * Is called when a fingerprint is successfully accepted
          */
         SUCCESS,
         /**
@@ -384,15 +383,15 @@ public class FingerprintDialog extends Dialog {
         void onFingerprintEvent(@NonNull FingerprintDialogEvent event);
     }
 
+    @SuppressWarnings("unused")
     @RequiresApi(api = Build.VERSION_CODES.M)
     public static class Builder {
         FingerprintDialog fingerprintDialog;
         Context context;
 
-        public Builder(Context context, FingerprintEncryptionManager fingerprintEncryptionManager) {
+        public Builder(Context context) {
             this.context = context;
             this.fingerprintDialog = new FingerprintDialog(context);
-            fingerprintDialog.fingerprintEncryptionManager = fingerprintEncryptionManager;
         }
 
         public Builder setEventListener(OnFingerprintDialogEventListener onFingerprintDialogEventListener) {
@@ -412,11 +411,6 @@ public class FingerprintDialog extends Dialog {
 
         public Builder setErrorMessage(String message) {
             fingerprintDialog.errorMessageText = message;
-            return this;
-        }
-
-        public Builder setKeyValidityDuration(int validityDuration) {
-            fingerprintDialog.validityDuration = validityDuration;
             return this;
         }
 
