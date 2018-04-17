@@ -120,31 +120,21 @@ The dialog will return the following events
 The following methods are available for encrypting/decrypting data
 
 ```
-@Throws(LocksmithEncryptionException::class)
-fun encryptString(data: String): String
-@Throws(LocksmithEncryptionException::class)
-fun decryptString(data: String): String 
-// Int Encrypt/Decrypt
-@Throws(LocksmithEncryptionException::class)
-fun encryptInt(data: Int): String
-@Throws(LocksmithEncryptionException::class)
-fun decryptInt(data: String): Int
-// Boolean Encrypt/Decrypt
-@Throws(LocksmithEncryptionException::class)
-fun encryptBoolean(data: Boolean): String 
-@Throws(LocksmithEncryptionException::class)
-fun decryptBoolean(data: String): Boolean
-// Float Encrypt/Decrypt
-@Throws(LocksmithEncryptionException::class)
-fun encryptFloat(data: Float): String
-@Throws(LocksmithEncryptionException::class)
-fun decryptFloat(data: String): Float
-// Long Encrypt/Decrypt
-@Throws(LocksmithEncryptionException::class)
-fun encryptLong(data: Long): String
-@Throws(LocksmithEncryptionException::class)
-fun decryptLong(data: String): Long
-```
+    Locksmith.getInstance().encryptString(data: String): String
+    Locksmith.getInstance().decryptString(data: String): String 
+    // Int Encrypt/Decrypt
+    Locksmith.getInstance().encryptInt(data: Int): String
+    Locksmith.getInstance().decryptInt(data: String): Int
+    // Boolean Encrypt/Decrypt
+    Locksmith.getInstance().encryptBoolean(data: Boolean): String 
+    Locksmith.getInstance().decryptBoolean(data: String): Boolean
+    // Float Encrypt/Decrypt
+    Locksmith.getInstance().encryptFloat(data: Float): String
+    Locksmith.getInstance().decryptFloat(data: String): Float
+    // Long Encrypt/Decrypt
+    Locksmith.getInstance().encryptLong(data: Long): String
+    Locksmith.getInstance().decryptLong(data: String): Long
+```.
 
 ***Note: if you're using kotlin you need to be sure to catch `LocksmithEncryptionException` and handle the errors appropriately (see the section below for how to do that)***
 
