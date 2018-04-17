@@ -16,18 +16,53 @@ The library itself is written in Java but most of the examples you'll find here 
 
 ## Getting Started
 
-##### Step 1) Fingerprint Authentication
+
+##### Step 1) Initiate Library
 ```Kotlin
+    override fun onCreate() {
+        super.onCreate()
+        
+        // Example using Fingerprint Encryption
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        // If were using a version above 23 we can use Fingerprint Encryption
+            Locksmith.Builder(this)
+                    .setKeyValidityDuration(120) // How many seconds should the key be valid for after fingerprint auth
+                    .setUseFingerprint(true)
+                    .build()
+        } 
+        
+        // Example normal encryption (Api 23 Above)
+     
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Locksmith.Builder(this)
+                    .setUseFingerprint(false)
+                    .build()
+        } 
+        
+        // If using a version below 23 you should initiate the following method
+         Locksmith.Builder(this).build()
+    }
+```
+
+### Using Fingerprint Auth
+
+If you enabled the `setUseFingerprint` flag during the configuration then the following section will be useful to you otherwise skip to the next section
+
+##### Step 1) Show Dialog
+
+```Kotlin
+    // This only needs to be done if you enabled Fingerprint auth on the config section
     private fun showFingerprintDialog(){
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Locksmith.getFingerprintDialogBuilder(this) // Provide context for our dialog
+            Locksmith.getInstance()
+                    .getFingerprintDialogBuilder(this) // Provide context for our dialog
                     .setTitle(titleText) // Title Text
                     .setSubtitle(subtitleText) // Subtitle Text
                     .setDescription(descriptionText) // Description Text
                     .setSuccessMessage(successMessage) // Message shown when you have successfully auth
                     .setErrorMessage(errorMessage) // Error message shown when auth failed
                     .setCancelText(cancelText) // Cancel button text
-                    .setKeyValidityDuration(10) // How long should the key be valid for once authenthicated (Can only be set once)
                     .setEventListener(this) // Set an event listener (See next step for a better explination)
                     .build() // Build our dialog
                     .show() // Show our dialog
@@ -80,42 +115,41 @@ override fun onFingerprintEvent(event: FingerprintDialog.FingerprintDialogEvent)
 
 The dialog will return the following events
 
-### Encrypting Data (Optional)
+### Encrypting Data
 
-If the only thing you're looking to do is get verification for a login then the following steps aren't required these are just purely for encrypting and decrypting data
+The following methods are available for encrypting/decrypting data
 
-****Note: You should be authenthicated first via the above method before trying to encrypt/decrypt data****
-
-##### Step 1) Encrypting Data
-
-```Kotlin
-    private fun encryptData() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                val testString = "Test"
-                val encryptedData = Locksmith.encrypt(testString)
-            } catch (e: LocksmithEncryptionException) {
-                handleException(e) // See step 3 for how to handle errors
-            }
-        }
-    }
+```
+@Throws(LocksmithEncryptionException::class)
+fun encryptString(data: String): String
+@Throws(LocksmithEncryptionException::class)
+fun decryptString(data: String): String 
+// Int Encrypt/Decrypt
+@Throws(LocksmithEncryptionException::class)
+fun encryptInt(data: Int): String
+@Throws(LocksmithEncryptionException::class)
+fun decryptInt(data: String): Int
+// Boolean Encrypt/Decrypt
+@Throws(LocksmithEncryptionException::class)
+fun encryptBoolean(data: Boolean): String 
+@Throws(LocksmithEncryptionException::class)
+fun decryptBoolean(data: String): Boolean
+// Float Encrypt/Decrypt
+@Throws(LocksmithEncryptionException::class)
+fun encryptFloat(data: Float): String
+@Throws(LocksmithEncryptionException::class)
+fun decryptFloat(data: String): Float
+// Long Encrypt/Decrypt
+@Throws(LocksmithEncryptionException::class)
+fun encryptLong(data: Long): String
+@Throws(LocksmithEncryptionException::class)
+fun decryptLong(data: String): Long
 ```
 
-##### Step 2) Decrypting Data
+***Note: if you're using kotlin you need to be sure to catch `LocksmithEncryptionException` and handle the errors appropriately (see the section below for how to do that)***
 
-```Kotlin
-    private fun decryptData() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                val decryptedData = Locksmith.decrypt(encryptedData)
-            } catch (e: LocksmithEncryptionException) {
-                handleException(e) // See step 3 for how to handle errors
-            }
-        }
-    }
-```
 
-##### Step 3) Handling Errors
+####Step 3) Handling Encryption Errors
 
 ```Koltin
 private fun handleException(e: LocksmithEncryptionException) {
