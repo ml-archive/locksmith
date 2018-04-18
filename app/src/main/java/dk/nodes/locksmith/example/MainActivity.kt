@@ -134,6 +134,7 @@ class MainActivity : AppCompatActivity(), OnFingerprintDialogEventListener {
                 }
             }
             dialog.onUsePasswordBtnListener = {
+                Log.d(TAG, "onUsePasswordBtnListener")
                 dialog.dismiss()
             }
 

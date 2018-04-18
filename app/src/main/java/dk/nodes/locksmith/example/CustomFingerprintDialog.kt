@@ -44,12 +44,17 @@ class CustomFingerprintDialog(context: Context) : FingerprintAlertDialogBase(con
         tvDescription.text = context.getString(R.string.fingerprintCustomDialogDescription)
         tvSubtitle.text = context.getString(R.string.fingerprintCustomDialogSubtitle)
         tvMessage.text = context.getString(R.string.fingerprintCustomDialogDefaultMessage)
-        btnUsePassword.text = context.getString(R.string.cancel)
-        btnCancel.text = context.getString(R.string.usePassword)
+        btnUsePassword.text = context.getString(R.string.usePassword)
+        btnCancel.text = context.getString(R.string.cancel)
+
+        btnCancel.setOnClickListener {
+            onCancelClicked()
+        }
 
         btnUsePassword.setOnClickListener {
             onUsePasswordBtnListener?.invoke()
         }
+        
     }
 
     override fun getDialogLayout(): Int {
