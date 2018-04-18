@@ -76,11 +76,11 @@ class MainActivity : AppCompatActivity(), OnFingerprintDialogEventListener {
         when (e.type) {
             Uninitiated     -> {
                 Log.e(TAG, "Uninitiated")
-                showFingerprintDialog()
+                showFingerprintDialogCustom()
             }
             Unauthenticated -> {
                 Log.e(TAG, "Unauthenticated")
-                showFingerprintDialog()
+                showFingerprintDialogCustom()
             }
             InvalidData     -> {
                 Snackbar.make(
@@ -102,18 +102,57 @@ class MainActivity : AppCompatActivity(), OnFingerprintDialogEventListener {
         }
     }
 
-    private fun showFingerprintDialog() {
+    private fun showFingerprintDialogCustom() {
         Log.d(TAG, "showFingerprintDialog")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
-            val cancelText = getString(R.string.cancel)
-            val titleText = getString(R.string.fingerprintDialogTitle)
-            val subtitleText = getString(R.string.fingerprintDialogSubtitle)
-            val descriptionText = getString(R.string.fingerprintDialogDescription)
+            val dialog = CustomFingerprintDialog(this)
 
-            val successMessage = getString(R.string.fingerprintDialogSuccessMessage)
-            val errorMessage = getString(R.string.fingerprintDialogErrorMessage)
+            dialog.setOnFingerprintDialogEventListener {
+                when (it) {
+                    FingerprintDialogEvent.CANCEL           -> {
+                        Log.w(TAG, "CANCEL")
+                    }
+                    FingerprintDialogEvent.SUCCESS          -> {
+                        Log.w(TAG, "SUCCESS")
+                    }
+                    FingerprintDialogEvent.ERROR            -> {
+                        Log.w(TAG, "ERROR")
+                    }
+                    FingerprintDialogEvent.ERROR_SECURE     -> {
+                        Log.w(TAG, "ERROR_SECURE")
+                    }
+                    FingerprintDialogEvent.ERROR_HARDWARE   -> {
+                        Log.w(TAG, "ERROR_HARDWARE")
+                    }
+                    FingerprintDialogEvent.ERROR_ENROLLMENT -> {
+                        Log.w(TAG, "ERROR_ENROLLMENT")
+                    }
+                    FingerprintDialogEvent.ERROR_CIPHER     -> {
+                        Log.w(TAG, "ERROR_ENROLLMENT")
+                    }
+                }
+            }
+            dialog.onUsePasswordBtnListener = {
+                dialog.dismiss()
+            }
 
+            dialog.show()
+
+
+        }
+    }
+
+    private fun showFingerprintDialog() {
+        val cancelText = getString(R.string.cancel)
+        val titleText = getString(R.string.fingerprintDialogTitle)
+        val subtitleText = getString(R.string.fingerprintDialogSubtitle)
+        val descriptionText = getString(R.string.fingerprintDialogDescription)
+
+        val successMessage = getString(R.string.fingerprintSuccessMessage)
+        val errorMessage = getString(R.string.fingerprintErrorMessage)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Locksmith.getInstance()
                     .getFingerprintDialogBuilder(this)
                     .setTitle(titleText)

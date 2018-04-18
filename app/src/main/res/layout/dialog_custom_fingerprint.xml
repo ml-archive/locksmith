@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
-    android:background="#FFF"
-    android:elevation="4dp"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:minWidth="300dp"
-    android:padding="24dp">
+    android:padding="16dp">
 
     <TextView
-        android:id="@+id/dialogFragmentTvTitle"
+        android:id="@+id/dialogCustomFingerprintTvTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-medium"
@@ -23,7 +20,7 @@
         tools:text="Fingerprint login" />
 
     <TextView
-        android:id="@+id/dialogFragmentTvDescription"
+        android:id="@+id/dialogCustomFingerprintTvDescription"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
@@ -35,7 +32,7 @@
         tools:text="Use your fingerprint for faster, easier access to your account" />
 
     <TextView
-        android:id="@+id/dialogFragmentTvSubtitle"
+        android:id="@+id/dialogCustomFingerprintTvSubtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
@@ -50,12 +47,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:clipChildren="false"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:padding="8dp">
 
         <ImageView
-            android:id="@+id/dialogFragmentIvFingerprint"
+            android:id="@+id/dialogCustomFingerprintIvFingerprint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/background_circle"
@@ -66,7 +63,7 @@
             android:src="@drawable/ic_fingerprint_white_24dp" />
 
         <TextView
-            android:id="@+id/dialogFragmentTvMessage"
+            android:id="@+id/dialogCustomFingerprintTvMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -87,7 +84,7 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/dialogFragmentBtnUsePassword"
+            android:id="@+id/dialogCustomFingerprintBtnUsePassword"
             style="?android:attr/buttonBarNegativeButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -99,7 +96,7 @@
             tools:text="Use Password" />
 
         <Button
-            android:id="@+id/dialogFragmentBtnCancel"
+            android:id="@+id/dialogCustomFingerprintBtnCancel"
             style="?android:attr/buttonBarNegativeButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
