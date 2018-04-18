@@ -1,15 +1,8 @@
 package dk.nodes.locksmith.core.fingerprint;
 
-import android.app.Dialog;
-import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
-import android.os.Bundle;
-import android.os.CancellationSignal;
 import android.os.Handler;
 import android.support.annotation.ColorRes;
 import android.support.annotation.NonNull;
@@ -17,7 +10,6 @@ import android.support.annotation.RequiresApi;
 import android.support.annotation.StyleRes;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
@@ -26,75 +18,46 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import dk.nodes.locksmith.R;
-import dk.nodes.locksmith.core.Locksmith;
-import dk.nodes.locksmith.core.exceptions.LocksmithCreationException;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class FingerprintDialog extends Dialog {
-    private static final String TAG = FingerprintDialog.class.getSimpleName();
-    // Listeners
-    private OnFingerprintDialogEventListener onFingerprintDialogEventListener;
+public class FingerprintDialog extends FingerprintDialogBase {
+    public static final String TAG = FingerprintDialog.class.getSimpleName();
+
     // Views
     private LinearLayout mainContainer;
-    private TextView tvTitle;
-    private TextView tvSubtitle;
-    private TextView tvDescription;
-    private TextView tvMessage;
-    private ImageView ivFingerprint;
-    private Button btnCancel;
-    // Callbacks
-    private FingerprintAuthenticationCallback fingerprintAuthenticationCallback = new FingerprintAuthenticationCallback();
-    // Fingerprint Related Stuff
-    private KeyguardManager keyguardManager;
-    private FingerprintManager fingerprintManager;
-    private FingerprintCryptManager cryptManager;
-    private CancellationSignal cancellationSignal;
+    protected TextView tvTitle;
+    protected TextView tvSubtitle;
+    protected TextView tvDescription;
+    protected TextView tvMessage;
+    protected ImageView ivFingerprint;
+    protected Button btnCancel;
+    // Values
+    protected String titleText;
+    protected String subtitleText;
+    protected String descriptionText;
+    protected String cancelButtonText;
+    protected String successMessageText;
+    protected String errorMessageText;
     // Handler
     private Handler handler = new Handler();
 
-    // Values
-    private String titleText;
-    private String subtitleText;
-    private String descriptionText;
-    private String cancelButtonText;
-    private String successMessageText;
-    private String errorMessageText;
-
-    private FingerprintDialog(@NonNull Context context) {
+    public FingerprintDialog(@NonNull Context context) {
         super(context);
-        setContentView(R.layout.dialog_fingerprint);
     }
 
     @Override
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
-
-        setupWindowStyle();
-
-        bindViews();
-
         setupViews();
-
-        checkHardware();
-
         startShowAnimation();
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public int getDialogLayout() {
+        return R.layout.dialog_fingerprint;
     }
 
-    private void setupWindowStyle() {
-        Window window = getWindow();
-
-        if (window != null) {
-            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            window.setDimAmount(0.7f);
-        }
-    }
-
-    private void bindViews() {
+    public void setupViews() {
         if (getWindow() == null) {
             dismiss();
             return;
@@ -110,10 +73,6 @@ public class FingerprintDialog extends Dialog {
         ivFingerprint = getWindow().findViewById(R.id.dialogFragmentIvFingerprint);
 
         btnCancel = getWindow().findViewById(R.id.dialogFragmentBtnCancel);
-    }
-
-    private void setupViews() {
-        // If our cancel button is setup then we should show it and add the values
 
         if (cancelButtonText != null) {
             btnCancel.setText(cancelButtonText);
@@ -139,98 +98,13 @@ public class FingerprintDialog extends Dialog {
         });
     }
 
-    private void checkHardware() {
-        try {
-            cryptManager = new FingerprintCryptManager();
-        } catch (LocksmithCreationException e) {
-            if (onFingerprintDialogEventListener != null) {
-                onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR_CIPHER);
-            }
-
-            dismiss();
-            return;
-        }
-
-        if (!keyguardManager.isDeviceSecure()) {
-            if (onFingerprintDialogEventListener != null) {
-                onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR_SECURE);
-            }
-
-            dismiss();
-            return;
-        }
-
-        if (!fingerprintManager.isHardwareDetected()) {
-            if (onFingerprintDialogEventListener != null) {
-                onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR_HARDWARE);
-            }
-
-            dismiss();
-            return;
-        }
-
-        if (!fingerprintManager.hasEnrolledFingerprints()) {
-            if (onFingerprintDialogEventListener != null) {
-                onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR_ENROLLMENT);
-            }
-
-            dismiss();
-            return;
-        }
-
-        authenticate();
+    @Override
+    protected void closeDialog() {
+        startCloseAnimation();
+        cancelSignal();
     }
 
-    private void authenticate() {
-        cancellationSignal = new CancellationSignal();
-        FingerprintManager.CryptoObject cryptoObject = cryptManager.getCryptoObject();
-        fingerprintManager.authenticate(cryptoObject, cancellationSignal, 0, fingerprintAuthenticationCallback, null);
-    }
-
-    // Event
-    private void onFingerprintSuccess() {
-        setFingerprintBackgroundTint(R.color.fingerprint_success);
-
-        if (successMessageText != null) {
-            setTvMessageWithStyle(successMessageText, R.style.FingerprintDialogSuccess);
-            btnCancel.setEnabled(false);
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    finishDialogSuccess();
-                }
-            }, 1000);
-        } else {
-            finishDialogSuccess();
-        }
-    }
-
-    // Fingerprint Methods
-
-    private void onFingerprintError() {
-        setFingerprintBackgroundTint(R.color.fingerprint_error);
-
-        if (errorMessageText != null) {
-            setTvMessageWithStyle(errorMessageText, R.style.FingerprintDialogError);
-            btnCancel.setEnabled(false);
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    finishDialogError();
-                }
-            }, 1000);
-        } else {
-            finishDialogError();
-        }
-    }
-
-    private void onFingerprintHelp(String helpString) {
-        Log.d(TAG, "onFingerprintHelp: " + helpString);
-
-        setFingerprintBackgroundTint(R.color.fingerprint_help);
-
-        setTvMessageWithStyle(helpString, R.style.FingerprintDialogWarn);
-    }
+    // Helpers
 
     private void setTvMessageWithStyle(String message, @StyleRes int styleRes) {
         tvMessage.setVisibility(View.VISIBLE);
@@ -248,73 +122,12 @@ public class FingerprintDialog extends Dialog {
         ivFingerprint.setBackgroundTintList(stateList);
     }
 
-    private void initiateEncryptionKey() {
-        try {
-            Locksmith.getInstance().init();
-        } catch (LocksmithCreationException e) {
-            e.printStackTrace();
-        }
-
-        onFingerprintSuccess();
-    }
-
-    private void finishDialogSuccess() {
-        Log.d(TAG, "finishDialogSuccess");
-
-        if (onFingerprintDialogEventListener != null) {
-            onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.SUCCESS);
-        }
-
-        closeDialog();
-    }
-
-    // Helpers
-
-    private void finishDialogError() {
-        Log.d(TAG, "finishDialogError");
-
-        if (onFingerprintDialogEventListener != null) {
-            onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR);
-        }
-
-        closeDialog();
-    }
-
-    private void onCancelClicked() {
-        Log.d(TAG, "onCancelClicked");
-
-        if (onFingerprintDialogEventListener != null) {
-            onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.CANCEL);
-        }
-
-        closeDialog();
-    }
-
-    // Dialog Finishers
-
-    private void closeDialog() {
-        startCloseAnimation();
-        cancelSignal();
-    }
-
-    @Override
-    protected void onStop() {
-        cancelSignal();
-        super.onStop();
-    }
-
-    private void cancelSignal() {
-        if (cancellationSignal != null && !cancellationSignal.isCanceled()) {
-            cancellationSignal.cancel();
-        }
-    }
+    // Animation Stuff
 
     private void startShowAnimation() {
         Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_up);
         mainContainer.startAnimation(animation);
     }
-
-    // Event overrides
 
     private void startCloseAnimation() {
         Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_down);
@@ -339,131 +152,55 @@ public class FingerprintDialog extends Dialog {
         mainContainer.startAnimation(animation);
     }
 
-
-    // Cancel Signal
-
     private void onCloseAnimationFinished() {
         dismiss();
     }
 
-    // Animation Functions
+    // Fingerprint Events
 
-    public enum FingerprintDialogEvent {
-        /**
-         * Is called when a user cancels the dialog
-         */
-        CANCEL,
-        /**
-         * Is called when a fingerprint is successfully accepted
-         */
-        SUCCESS,
-        /**
-         * Is called when a fingerprint is read but not accepted
-         */
-        ERROR,
-        /**
-         * Is called when the lock screen is not secured by a code/fingerprint
-         */
-        ERROR_SECURE,
-        /**
-         * Is sent when there is no hardware detected¬
-         */
-        ERROR_HARDWARE,
-        /**
-         * Is called when no finger prints are enrolled
-         */
-        ERROR_ENROLLMENT,
-        /**
-         * Is called when the cipher fails to create
-         */
-        ERROR_CIPHER
-    }
+    @Override
+    public void onFingerprintSuccess() {
+        setFingerprintBackgroundTint(R.color.fingerprint_success);
 
-    public interface OnFingerprintDialogEventListener {
-        void onFingerprintEvent(@NonNull FingerprintDialogEvent event);
-    }
-
-    @SuppressWarnings("unused")
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public static class Builder {
-        FingerprintDialog fingerprintDialog;
-        Context context;
-
-        public Builder(Context context) {
-            this.context = context;
-            this.fingerprintDialog = new FingerprintDialog(context);
-        }
-
-        public Builder setEventListener(OnFingerprintDialogEventListener onFingerprintDialogEventListener) {
-            fingerprintDialog.onFingerprintDialogEventListener = onFingerprintDialogEventListener;
-            return this;
-        }
-
-        public Builder setCancelText(String text) {
-            fingerprintDialog.cancelButtonText = text;
-            return this;
-        }
-
-        public Builder setSuccessMessage(String message) {
-            fingerprintDialog.successMessageText = message;
-            return this;
-        }
-
-        public Builder setErrorMessage(String message) {
-            fingerprintDialog.errorMessageText = message;
-            return this;
-        }
-
-        public Builder setTitle(String text) {
-            fingerprintDialog.titleText = text;
-            return this;
-        }
-
-        public Builder setSubtitle(String text) {
-            fingerprintDialog.subtitleText = text;
-            return this;
-        }
-
-        public Builder setDescription(String text) {
-            fingerprintDialog.descriptionText = text;
-            return this;
-        }
-
-        public FingerprintDialog build() {
-            fingerprintDialog.keyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
-            fingerprintDialog.fingerprintManager = (FingerprintManager) context.getSystemService(Context.FINGERPRINT_SERVICE);
-
-            context = null;
-
-            return fingerprintDialog;
+        if (successMessageText != null) {
+            setTvMessageWithStyle(successMessageText, R.style.FingerprintDialogSuccess);
+            btnCancel.setEnabled(false);
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    closeDialog();
+                }
+            }, 1000);
+        } else {
+            closeDialog();
         }
     }
 
-    public class FingerprintAuthenticationCallback extends FingerprintManager.AuthenticationCallback {
-        @Override
-        public void onAuthenticationError(int errMsgId, CharSequence errString) {
-            Log.d(TAG, "onAuthenticationError");
-            onFingerprintHelp(errString.toString());
-        }
+    @Override
+    public void onFingerprintHelp(String help) {
+        Log.d(TAG, "onFingerprintHelp: " + help);
 
-        @Override
-        public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
-            Log.d(TAG, "onAuthenticationHelp");
-            onFingerprintHelp(helpString.toString());
-        }
+        setFingerprintBackgroundTint(R.color.fingerprint_help);
 
-        @Override
-        public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
-            Log.d(TAG, "onAuthenticationSucceeded");
-            initiateEncryptionKey();
-            fingerprintAuthenticationCallback = null;
-        }
+        setTvMessageWithStyle(help, R.style.FingerprintDialogWarn);
+    }
 
-        @Override
-        public void onAuthenticationFailed() {
-            Log.d(TAG, "onAuthenticationFailed");
-            onFingerprintError();
-            fingerprintAuthenticationCallback = null;
+    @Override
+    public void onFingerprintError() {
+        setFingerprintBackgroundTint(R.color.fingerprint_error);
+
+        if (errorMessageText != null) {
+            setTvMessageWithStyle(errorMessageText, R.style.FingerprintDialogError);
+            btnCancel.setEnabled(false);
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    closeDialog();
+                }
+            }, 1000);
+        } else {
+            closeDialog();
         }
     }
+
 }

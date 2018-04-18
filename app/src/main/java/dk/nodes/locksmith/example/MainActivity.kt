@@ -9,10 +9,11 @@ import android.util.Log
 import dk.nodes.locksmith.core.Locksmith
 import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException
 import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException.Type.*
-import dk.nodes.locksmith.core.fingerprint.FingerprintDialog
+import dk.nodes.locksmith.core.models.FingerprintDialogEvent
+import dk.nodes.locksmith.core.models.OnFingerprintDialogEventListener
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogEventListener {
+class MainActivity : AppCompatActivity(), OnFingerprintDialogEventListener {
     private val TAG = MainActivity::class.simpleName
 
     private val originalData = "Mary had a little lamb\n" +
@@ -131,27 +132,27 @@ class MainActivity : AppCompatActivity(), FingerprintDialog.OnFingerprintDialogE
         mainTvDecryptedData.text = currentData
     }
 
-    override fun onFingerprintEvent(event: FingerprintDialog.FingerprintDialogEvent) {
+    override fun onFingerprintEvent(event: FingerprintDialogEvent) {
         when (event) {
-            FingerprintDialog.FingerprintDialogEvent.CANCEL           -> {
+            FingerprintDialogEvent.CANCEL           -> {
                 Log.w(TAG, "CANCEL")
             }
-            FingerprintDialog.FingerprintDialogEvent.SUCCESS          -> {
+            FingerprintDialogEvent.SUCCESS          -> {
                 Log.w(TAG, "SUCCESS")
             }
-            FingerprintDialog.FingerprintDialogEvent.ERROR            -> {
+            FingerprintDialogEvent.ERROR            -> {
                 Log.w(TAG, "ERROR")
             }
-            FingerprintDialog.FingerprintDialogEvent.ERROR_SECURE     -> {
+            FingerprintDialogEvent.ERROR_SECURE     -> {
                 Log.w(TAG, "ERROR_SECURE")
             }
-            FingerprintDialog.FingerprintDialogEvent.ERROR_HARDWARE   -> {
+            FingerprintDialogEvent.ERROR_HARDWARE   -> {
                 Log.w(TAG, "ERROR_HARDWARE")
             }
-            FingerprintDialog.FingerprintDialogEvent.ERROR_ENROLLMENT -> {
+            FingerprintDialogEvent.ERROR_ENROLLMENT -> {
                 Log.w(TAG, "ERROR_ENROLLMENT")
             }
-            FingerprintDialog.FingerprintDialogEvent.ERROR_CIPHER     -> {
+            FingerprintDialogEvent.ERROR_CIPHER     -> {
                 Log.w(TAG, "ERROR_ENROLLMENT")
             }
         }

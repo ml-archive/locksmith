@@ -8,7 +8,8 @@ import android.support.annotation.RequiresApi;
 import dk.nodes.locksmith.core.encryption.EncryptionManager;
 import dk.nodes.locksmith.core.exceptions.LocksmithCreationException;
 import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException;
-import dk.nodes.locksmith.core.fingerprint.FingerprintDialog;
+import dk.nodes.locksmith.core.fingerprint.FingerprintDialogBase;
+import dk.nodes.locksmith.core.fingerprint.FingerprintDialogBuilder;
 
 @SuppressLint("StaticFieldLeak")
 public class Locksmith {
@@ -80,8 +81,8 @@ public class Locksmith {
 
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public FingerprintDialog.Builder getFingerprintDialogBuilder(Context context) {
-        return new FingerprintDialog.Builder(context);
+    public FingerprintDialogBuilder getFingerprintDialogBuilder(Context context) {
+        return new FingerprintDialogBuilder(context);
     }
 
     // Getters
