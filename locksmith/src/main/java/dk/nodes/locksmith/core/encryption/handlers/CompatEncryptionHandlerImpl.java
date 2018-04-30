@@ -20,8 +20,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import dk.nodes.locksmith.core.encryption.EncryptionHandler;
 import dk.nodes.locksmith.core.encryption.compat.RsaEncryptionHelper;
-import dk.nodes.locksmith.core.exceptions.LocksmithCreationException;
-import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException;
+import dk.nodes.locksmith.core.exceptions.LocksmithException;
 import dk.nodes.locksmith.core.models.EncryptionData;
 import dk.nodes.locksmith.core.util.HashingUtils;
 
@@ -39,6 +38,10 @@ public class CompatEncryptionHandlerImpl implements EncryptionHandler {
     private SharedPreferences sharedPreferences;
     private RsaEncryptionHelper rsaEncryptionHelper;
     private SecretKeySpec aesKey;
+    /**
+     * Used for tracking initialization status
+     */
+    private boolean isInitialized = false;
 
     public CompatEncryptionHandlerImpl(Context context) {
         this.context = context;
@@ -46,22 +49,28 @@ public class CompatEncryptionHandlerImpl implements EncryptionHandler {
     }
 
     @Override
-    public void init() throws LocksmithCreationException {
+    public void init() throws LocksmithException {
         this.rsaEncryptionHelper = new RsaEncryptionHelper(context);
         loadAesKeys();
+        isInitialized = true;
+    }
+
+    @Override
+    public boolean isInitialized() {
+        return isInitialized;
     }
 
     //Main Decrypting Methods
 
     @Override
-    public String encrypt(byte[] data) throws LocksmithEncryptionException {
+    public String encrypt(byte[] data) throws LocksmithException {
         byte[] iv = getIV();
         EncryptionData encryptedData = encrypt(data, iv);
         return encryptedData.encode();
     }
 
     @Override
-    public byte[] decrypt(String data) throws LocksmithEncryptionException {
+    public byte[] decrypt(String data) throws LocksmithException {
         EncryptionData encryptedData = new EncryptionData(data);
         return decrypt(encryptedData.data, encryptedData.iv);
     }
@@ -76,7 +85,7 @@ public class CompatEncryptionHandlerImpl implements EncryptionHandler {
 
     //AES Key Stuff
 
-    private void loadAesKeys() throws LocksmithCreationException {
+    private void loadAesKeys() throws LocksmithException {
         try {
             // In order to load our AES key we need to first hash our value
             String hashedKey = HashingUtils.sha256(SP_AES_KEY);
@@ -112,11 +121,11 @@ public class CompatEncryptionHandlerImpl implements EncryptionHandler {
             //And then set it
             aesKey = new SecretKeySpec(key, "AES");
         } catch (Exception e) {
-            throw new LocksmithCreationException(e);
+            throw new LocksmithException(LocksmithException.Type.Initiation, e);
         }
     }
 
-    private EncryptionData encrypt(byte[] data, byte[] iv) throws LocksmithEncryptionException {
+    private EncryptionData encrypt(byte[] data, byte[] iv) throws LocksmithException {
         try {
             Cipher cipher = Cipher.getInstance(AES_MODE);
             cipher.init(Cipher.ENCRYPT_MODE, aesKey, new GCMParameterSpec(GCM_TAG_LENGTH, iv));
@@ -127,36 +136,36 @@ public class CompatEncryptionHandlerImpl implements EncryptionHandler {
 
             return result;
         } catch (NullPointerException | InvalidKeyException | BadPaddingException e) {
-            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.EncryptionError, e);
+            throw new LocksmithException(LocksmithException.Type.EncryptionError, e);
         } catch (IllegalBlockSizeException e) {
             if (e.getCause() instanceof KeyStoreException) {
-                throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Unauthenticated, e);
+                throw new LocksmithException(LocksmithException.Type.Unauthenticated, e);
             } else {
-                throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.EncryptionError, e);
+                throw new LocksmithException(LocksmithException.Type.EncryptionError, e);
             }
         } catch (Exception e) {
-            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Generic, e);
+            throw new LocksmithException(LocksmithException.Type.Generic, e);
         }
     }
 
 
-    private byte[] decrypt(byte[] data, byte[] iv) throws LocksmithEncryptionException {
+    private byte[] decrypt(byte[] data, byte[] iv) throws LocksmithException {
         try {
             Cipher c = Cipher.getInstance(AES_MODE, "BC");
             c.init(Cipher.DECRYPT_MODE, aesKey, new GCMParameterSpec(GCM_TAG_LENGTH, iv));
             return c.doFinal(data);
         } catch (NullPointerException e) {
-            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Uninitiated, e);
+            throw new LocksmithException(LocksmithException.Type.Uninitiated, e);
         } catch (InvalidKeyException | InvalidAlgorithmParameterException | BadPaddingException e) {
-            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.EncryptionError, e);
+            throw new LocksmithException(LocksmithException.Type.EncryptionError, e);
         } catch (IllegalBlockSizeException e) {
             if (e.getCause() instanceof KeyStoreException) {
-                throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Unauthenticated, e);
+                throw new LocksmithException(LocksmithException.Type.Unauthenticated, e);
             } else {
-                throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.EncryptionError, e);
+                throw new LocksmithException(LocksmithException.Type.EncryptionError, e);
             }
         } catch (Exception e) {
-            throw new LocksmithEncryptionException(LocksmithEncryptionException.Type.Generic, e);
+            throw new LocksmithException(LocksmithException.Type.Generic, e);
         }
     }
 }

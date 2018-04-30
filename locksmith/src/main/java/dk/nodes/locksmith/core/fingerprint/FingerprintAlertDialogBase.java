@@ -3,8 +3,6 @@ package dk.nodes.locksmith.core.fingerprint;
 import android.app.AlertDialog;
 import android.app.KeyguardManager;
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -15,10 +13,9 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.Window;
 
 import dk.nodes.locksmith.core.Locksmith;
-import dk.nodes.locksmith.core.exceptions.LocksmithCreationException;
+import dk.nodes.locksmith.core.exceptions.LocksmithException;
 import dk.nodes.locksmith.core.models.FingerprintDialogEvent;
 import dk.nodes.locksmith.core.models.OnFingerprintDialogEventListener;
 
@@ -75,7 +72,7 @@ public abstract class FingerprintAlertDialogBase extends AlertDialog {
     private void checkHardware() {
         try {
             cryptManager = new FingerprintCryptManager();
-        } catch (LocksmithCreationException e) {
+        } catch (LocksmithException e) {
             if (onFingerprintDialogEventListener != null) {
                 onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR_CIPHER);
             }
@@ -163,8 +160,8 @@ public abstract class FingerprintAlertDialogBase extends AlertDialog {
 
     private void preDialogSuccessful() {
         try {
-            Locksmith.getInstance().init();
-        } catch (LocksmithCreationException e) {
+            Locksmith.getInstance().initFingerprint();
+        } catch (LocksmithException e) {
             e.printStackTrace();
         }
 

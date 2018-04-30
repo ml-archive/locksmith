@@ -1,12 +1,13 @@
 package dk.nodes.locksmith.core.encryption;
 
-import dk.nodes.locksmith.core.exceptions.LocksmithCreationException;
-import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException;
+import dk.nodes.locksmith.core.exceptions.LocksmithException;
 
 public interface EncryptionHandler {
-    void init() throws LocksmithCreationException;
+    void init() throws LocksmithException;
 
-    String encrypt(byte[] data) throws LocksmithEncryptionException;
+    boolean isInitialized();
 
-    byte[] decrypt(String data) throws LocksmithEncryptionException;
+    String encrypt(byte[] data) throws LocksmithException;
+
+    byte[] decrypt(String data) throws LocksmithException;
 }

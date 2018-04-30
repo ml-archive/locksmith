@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import dk.nodes.locksmith.core.Locksmith;
-import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException;
+import dk.nodes.locksmith.core.exceptions.LocksmithException;
 import dk.nodes.locksmith.core.util.HashingUtils;
 
 @SuppressLint("ApplySharedPref")
@@ -18,13 +18,13 @@ public class EncryptedPreferences {
 
     // String Encryption
 
-    public void putString(String key, String value) throws LocksmithEncryptionException {
+    public void putString(String key, String value) throws LocksmithException {
         String hashedKey = HashingUtils.sha256(key);
-        String encryptedData = Locksmith.getInstance().encryptString(value);
+        String encryptedData = Locksmith.getInstance().getEncryptionManager().encryptString(value);
         sharedPreferences.edit().putString(hashedKey, encryptedData).commit();
     }
 
-    public String getString(String key, String defaultValue) throws LocksmithEncryptionException {
+    public String getString(String key, String defaultValue) throws LocksmithException {
         String hashedKey = HashingUtils.sha256(key);
         String encryptedValue = sharedPreferences.getString(hashedKey, defaultValue);
 
@@ -32,18 +32,18 @@ public class EncryptedPreferences {
             return defaultValue;
         }
 
-        return Locksmith.getInstance().decryptString(encryptedValue);
+        return Locksmith.getInstance().getEncryptionManager().decryptString(encryptedValue);
     }
 
     // Integer Encryption
 
-    public void putInt(String key, int value) throws LocksmithEncryptionException {
+    public void putInt(String key, int value) throws LocksmithException {
         String hashedKey = HashingUtils.sha256(key);
-        String encryptedData = Locksmith.getInstance().encryptInt(value);
+        String encryptedData = Locksmith.getInstance().getEncryptionManager().encryptInt(value);
         sharedPreferences.edit().putString(hashedKey, encryptedData).commit();
     }
 
-    public int getInt(String key, int defaultValue) throws LocksmithEncryptionException {
+    public int getInt(String key, int defaultValue) throws LocksmithException {
         String hashedKey = HashingUtils.sha256(key);
         String encryptedValue = sharedPreferences.getString(hashedKey, null);
 
@@ -51,18 +51,18 @@ public class EncryptedPreferences {
             return defaultValue;
         }
 
-        return Locksmith.getInstance().decryptInt(encryptedValue);
+        return Locksmith.getInstance().getEncryptionManager().decryptInt(encryptedValue);
     }
 
     // Float Encryption
 
-    public void putFloat(String key, float value) throws LocksmithEncryptionException {
+    public void putFloat(String key, float value) throws LocksmithException {
         String hashedKey = HashingUtils.sha256(key);
-        String encryptedData = Locksmith.getInstance().encryptFloat(value);
+        String encryptedData = Locksmith.getInstance().getEncryptionManager().encryptFloat(value);
         sharedPreferences.edit().putString(hashedKey, encryptedData).commit();
     }
 
-    public float getFloat(String key, float defaultValue) throws LocksmithEncryptionException {
+    public float getFloat(String key, float defaultValue) throws LocksmithException {
         String hashedKey = HashingUtils.sha256(key);
         String encryptedValue = sharedPreferences.getString(hashedKey, null);
 
@@ -70,18 +70,18 @@ public class EncryptedPreferences {
             return defaultValue;
         }
 
-        return Locksmith.getInstance().decryptFloat(encryptedValue);
+        return Locksmith.getInstance().getEncryptionManager().decryptFloat(encryptedValue);
     }
 
     // Long Encryption
 
-    public void putLong(String key, long value) throws LocksmithEncryptionException {
+    public void putLong(String key, long value) throws LocksmithException {
         String hashedKey = HashingUtils.sha256(key);
-        String encryptedData = Locksmith.getInstance().encryptLong(value);
+        String encryptedData = Locksmith.getInstance().getEncryptionManager().encryptLong(value);
         sharedPreferences.edit().putString(hashedKey, encryptedData).commit();
     }
 
-    public long getLong(String key, long defaultValue) throws LocksmithEncryptionException {
+    public long getLong(String key, long defaultValue) throws LocksmithException {
         String hashedKey = HashingUtils.sha256(key);
         String encryptedValue = sharedPreferences.getString(hashedKey, null);
 
@@ -89,19 +89,19 @@ public class EncryptedPreferences {
             return defaultValue;
         }
 
-        return Locksmith.getInstance().decryptLong(encryptedValue);
+        return Locksmith.getInstance().getEncryptionManager().decryptLong(encryptedValue);
     }
 
 
     // Boolean Encryption
 
-    public void putBoolean(String key, boolean value) throws LocksmithEncryptionException {
+    public void putBoolean(String key, boolean value) throws LocksmithException {
         String hashedKey = HashingUtils.sha256(key);
-        String encryptedData = Locksmith.getInstance().encryptBoolean(value);
+        String encryptedData = Locksmith.getInstance().getEncryptionManager().encryptBoolean(value);
         sharedPreferences.edit().putString(hashedKey, encryptedData).commit();
     }
 
-    public boolean getBoolean(String key, boolean defaultValue) throws LocksmithEncryptionException {
+    public boolean getBoolean(String key, boolean defaultValue) throws LocksmithException {
         String hashedKey = HashingUtils.sha256(key);
         String encryptedValue = sharedPreferences.getString(hashedKey, null);
 
@@ -109,7 +109,7 @@ public class EncryptedPreferences {
             return defaultValue;
         }
 
-        return Locksmith.getInstance().decryptBoolean(encryptedValue);
+        return Locksmith.getInstance().getEncryptionManager().decryptBoolean(encryptedValue);
     }
 
     //

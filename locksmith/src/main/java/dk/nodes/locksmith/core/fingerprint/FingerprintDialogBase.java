@@ -16,7 +16,7 @@ import android.util.Log;
 import android.view.Window;
 
 import dk.nodes.locksmith.core.Locksmith;
-import dk.nodes.locksmith.core.exceptions.LocksmithCreationException;
+import dk.nodes.locksmith.core.exceptions.LocksmithException;
 import dk.nodes.locksmith.core.models.FingerprintDialogEvent;
 import dk.nodes.locksmith.core.models.OnFingerprintDialogEventListener;
 
@@ -69,7 +69,7 @@ public abstract class FingerprintDialogBase extends Dialog {
     private void checkHardware() {
         try {
             cryptManager = new FingerprintCryptManager();
-        } catch (LocksmithCreationException e) {
+        } catch (LocksmithException e) {
             if (onFingerprintDialogEventListener != null) {
                 onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR_CIPHER);
             }
@@ -157,8 +157,8 @@ public abstract class FingerprintDialogBase extends Dialog {
 
     private void preDialogSuccessful() {
         try {
-            Locksmith.getInstance().init();
-        } catch (LocksmithCreationException e) {
+            Locksmith.getInstance().initFingerprint();
+        } catch (LocksmithException e) {
             e.printStackTrace();
         }
 
