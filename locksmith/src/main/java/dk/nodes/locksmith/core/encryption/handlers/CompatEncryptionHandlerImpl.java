@@ -38,9 +38,11 @@ public class CompatEncryptionHandlerImpl implements EncryptionHandler {
     private SharedPreferences sharedPreferences;
     private RsaEncryptionHelper rsaEncryptionHelper;
     private SecretKeySpec aesKey;
+
     /**
      * Used for tracking initialization status
      */
+
     private boolean isInitialized = false;
 
     public CompatEncryptionHandlerImpl(Context context) {

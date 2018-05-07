@@ -21,33 +21,17 @@ The library itself is written in Java but most of the examples you'll find here 
 ```Kotlin
     override fun onCreate() {
         super.onCreate()
-        
-        // Example using Fingerprint Encryption
-        
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        // If were using a version above 23 we can use Fingerprint Encryption
-            Locksmith.Builder(this)
-                    .setKeyValidityDuration(120) // How many seconds should the key be valid for after fingerprint auth
-                    .setUseFingerprint(true)
-                    .build()
-        } 
-        
-        // Example normal encryption (Api 23 Above)
-     
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Locksmith.Builder(this)
-                    .setUseFingerprint(false)
-                    .build()
-        } 
-        
-        // If using a version below 23 you should initiate the following method
-         Locksmith.Builder(this).build()
+        // Configure our Locksmith instance
+        val locksmithConfiguration = LocksmithConfiguration()
+        locksmithConfiguration.keyValidityDuration = 120
+        // Start our locksmith instance
+        Locksmith.init(this, locksmithConfiguration)
     }
 ```
 
 ### Using Fingerprint Auth
 
-If you enabled the `setUseFingerprint` flag during the configuration then the following section will be useful to you otherwise skip to the next section
+Next section will cover using the fingerprint encryption portion of the Library if you're not going to use this just skip to the next section
 
 ##### Step 1) Show Dialog
 
@@ -56,58 +40,54 @@ If you enabled the `setUseFingerprint` flag during the configuration then the fo
     private fun showFingerprintDialog(){
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Locksmith.getInstance()
-                    .getFingerprintDialogBuilder(this) // Provide context for our dialog
-                    .setTitle(titleText) // Title Text
-                    .setSubtitle(subtitleText) // Subtitle Text
-                    .setDescription(descriptionText) // Description Text
-                    .setSuccessMessage(successMessage) // Message shown when you have successfully auth
-                    .setErrorMessage(errorMessage) // Error message shown when auth failed
-                    .setCancelText(cancelText) // Cancel button text
-                    .setEventListener(this) // Set an event listener (See next step for a better explination)
-                    .build() // Build our dialog
-                    .show() // Show our dialog
+                    .getFingerprintDialogBuilder(context)
+                    .setTitle(titleText)
+                    .setSubtitle(subtitleText)
+                    .setDescription(descriptionText)
+                    .setSuccessMessage(successMessage)
+                    .setErrorMessage(errorMessage)
+                    .setCancelText(cancelText)
+                    .setEventListener(this) // Sets the event listener for our dialog
+                    .build()
+                    .show()
         }
     }
 ```
-Step is pretty self explanatory we just use a builder to create our dialog that will allow our user to auth.
+
+After setting up the dialog and showing it, the authentication process will then be handled by the dialog, and should return a successful event or an error even see the following section for events and types.
+
+***Note: You are also able to extend the `FingerprintDialogBase` or `FingerprintAlertDialogBase` to write your own custom dialog***
 
 ##### Step 2) Add Event Listener
 
 ```
-FingerprintDialog.OnFingerprintDialogEventListener
+OnFingerprintDialogEventListener
 ```
 In order to listen to events from the dialog you must implement the `OnFingerprintDialogEventListener` as shown above.
 
 ```Kotlin
-override fun onFingerprintEvent(event: FingerprintDialog.FingerprintDialogEvent) {
+    override fun onFingerprintEvent(event: FingerprintDialogEvent) {
         when (event) {
-            FingerprintDialog.FingerprintDialogEvent.CANCEL           -> {
-                Log.w(TAG, "CANCEL")
-                // Returns the following event when the user cancels the dialog
+            FingerprintDialogEvent.CANCEL           -> {
+                Log.w(tag, "CANCEL") // Event fired when user cancels the dialog
             }
-            FingerprintDialog.FingerprintDialogEvent.SUCCESS          -> {
-                Log.w(TAG, "SUCCESS")
-                // Returns the following event when the correct fingerprint has been read
+            FingerprintDialogEvent.SUCCESS          -> {
+                Log.w(tag, "SUCCESS") // Event fired when user successfully authenticated
             }
-            FingerprintDialog.FingerprintDialogEvent.ERROR            -> {
-                Log.w(TAG, "ERROR")
-                 // Returns the following event when a fingerprint was correctly read but not accepted
+            FingerprintDialogEvent.ERROR            -> {
+                Log.w(tag, "ERROR") // A fingerprint was read but it was an incorrect fingerprint
             }
-            FingerprintDialog.FingerprintDialogEvent.ERROR_SECURE     -> {
-                Log.w(TAG, "ERROR_SECURE")
-                // Returns the following event when the lock screen isn't enabled
+            FingerprintDialogEvent.ERROR_SECURE     -> {
+                Log.w(tag, "ERROR_SECURE") // Device does not have lock screen enabled
             }
-            FingerprintDialog.FingerprintDialogEvent.ERROR_HARDWARE   -> {
-                Log.w(TAG, "ERROR_HARDWARE")
-                // Returns the following event when there is no fingerprint hardware
+            FingerprintDialogEvent.ERROR_HARDWARE   -> {
+                Log.w(tag, "ERROR_HARDWARE") // Device does not have fingerprint hardware
             }
-            FingerprintDialog.FingerprintDialogEvent.ERROR_ENROLLMENT -> {
-                Log.w(TAG, "ERROR_ENROLLMENT")
-                // Returns the following event when no fingerprints are enrolled
+            FingerprintDialogEvent.ERROR_ENROLLMENT -> {
+                Log.w(tag, "ERROR_ENROLLMENT") // Device has no fingerprints enrolled
             }
-            FingerprintDialog.FingerprintDialogEvent.ERROR_CIPHER     -> {
-                Log.w(TAG, "ERROR_ENROLLMENT")
-                // Returns the following event when the cipher failed to initate
+            FingerprintDialogEvent.ERROR_CIPHER     -> {
+                Log.w(tag, "ERROR_ENROLLMENT") // Error initialization a cipher
             }
         }
     }
@@ -117,23 +97,25 @@ The dialog will return the following events
 
 ### Encrypting Data
 
-The following methods are available for encrypting/decrypting data
+For encrypting data you have two main forms of doing so you can either use the `fingerprintEncryptionManager` or `encryptionManager`
+
+If you're going to use the `fingerprintEncryptionManager` you must authenticate first using the method in the first step otherwise the standard `encryptionManager`
 
 ```
-    Locksmith.getInstance().encryptString(data: String): String
-    Locksmith.getInstance().decryptString(data: String): String 
+    Locksmith.instance.encryptionManager.encryptString(data)
+    Locksmith.instance.encryptionManager.decryptString(data) 
     // Int Encrypt/Decrypt
-    Locksmith.getInstance().encryptInt(data: Int): String
-    Locksmith.getInstance().decryptInt(data: String): Int
+    Locksmith.instance.encryptionManager.encryptInt(data)
+    Locksmith.instance.encryptionManager.decryptInt(data)
     // Boolean Encrypt/Decrypt
-    Locksmith.getInstance().encryptBoolean(data: Boolean): String 
-    Locksmith.getInstance().decryptBoolean(data: String): Boolean
+    Locksmith.instance.encryptionManager.encryptBoolean(data) 
+    Locksmith.instance.encryptionManager.decryptBoolean(data)
     // Float Encrypt/Decrypt
-    Locksmith.getInstance().encryptFloat(data: Float): String
-    Locksmith.getInstance().decryptFloat(data: String): Float
+    Locksmith.instance.encryptionManager.encryptFloat(data)
+    Locksmith.instance.encryptionManager.decryptFloat(data)
     // Long Encrypt/Decrypt
-    Locksmith.getInstance().encryptLong(data: Long): String
-    Locksmith.getInstance().decryptLong(data: String): Long
+    Locksmith.instance.encryptionManager.encryptLong(data)
+    Locksmith.instance.encryptionManager.decryptLong(data)
 ```
 
 ***Note: if you're using kotlin you need to be sure to catch `LocksmithEncryptionException` and handle the errors appropriately (see the section below for how to do that)***
@@ -144,8 +126,13 @@ The following methods are available for encrypting/decrypting data
 ```Koltin
 private fun handleException(e: LocksmithEncryptionException) {
     Log.e(TAG, "handleException")
-    
     when (e.type) {
+       /**
+         * Will return this if for some reason the encryption cipher failed to be initiated
+         */
+         
+        Initiation -> {}
+        
        /**
          * Will return this type if the cipher/algorithm was not properly initiated
          */

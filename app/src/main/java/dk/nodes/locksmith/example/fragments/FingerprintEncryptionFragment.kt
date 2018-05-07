@@ -28,6 +28,7 @@ class FingerprintEncryptionFragment : Fragment(), OnFingerprintDialogEventListen
             "It's fleece was white as snow, yeah\n" +
             "Everywhere the child went\n" +
             "The lamb, the lamb was sure to go, yeah"
+
     private var encryptedData: String = ""
 
     override fun onCreateView(

@@ -8,6 +8,7 @@ import android.support.annotation.RequiresApi;
 import dk.nodes.locksmith.core.encryption.EncryptionManager;
 import dk.nodes.locksmith.core.exceptions.LocksmithException;
 import dk.nodes.locksmith.core.fingerprint.FingerprintDialogBuilder;
+import dk.nodes.locksmith.core.manager.FingerprintHardwareManager;
 import dk.nodes.locksmith.core.models.LocksmithConfiguration;
 
 public class Locksmith {
@@ -22,12 +23,25 @@ public class Locksmith {
     }
 
     /**
-     * Duration for how long our key will be valid for after it is validated by fingerprint (Measured in seconds)
+     * Contains our locksmith configuration
      */
+
     private LocksmithConfiguration locksmithConfiguration;
 
+    /**
+     * Our basic encryption manager
+     */
+
     private EncryptionManager encryptionManager;
+
+    /**
+     * Our Fingerprint Encryption Manager (Can be null for API 23 and below)
+     */
+
     private EncryptionManager fingerprintEncryptionManager;
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    private FingerprintHardwareManager fingerprintHardwareManager;
 
     private Locksmith(Context context, LocksmithConfiguration locksmithConfiguration) {
         this.locksmithConfiguration = locksmithConfiguration;
@@ -36,6 +50,7 @@ public class Locksmith {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             this.fingerprintEncryptionManager = new EncryptionManager(context, true);
+            this.fingerprintHardwareManager = new FingerprintHardwareManager(context);
         }
     }
 
@@ -44,6 +59,7 @@ public class Locksmith {
      *
      * @throws LocksmithException
      */
+
     @RequiresApi(Build.VERSION_CODES.M)
     public void initFingerprint() throws LocksmithException {
         fingerprintEncryptionManager.init();
@@ -58,6 +74,23 @@ public class Locksmith {
     public void init() throws LocksmithException {
         encryptionManager.init();
     }
+
+
+    /**
+     * Returns whether the device can use the fingerprint api
+     *
+     * @return Boolean value for fingerprint availability
+     */
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public FingerprintHardwareManager.State canUseFingerprint() {
+        return fingerprintHardwareManager.checkHardware();
+    }
+
+    /**
+     * Returns our normal encryption manager
+     *
+     * @return {@link EncryptionManager}
+     */
 
     @NonNull
     public EncryptionManager getEncryptionManager() {
@@ -82,6 +115,7 @@ public class Locksmith {
      * @param context Context must be provided to create the dialog
      * @return {@link FingerprintDialogBuilder} instance
      */
+
     @RequiresApi(api = Build.VERSION_CODES.M)
     public FingerprintDialogBuilder getFingerprintDialogBuilder(Context context) {
         return new FingerprintDialogBuilder(context);

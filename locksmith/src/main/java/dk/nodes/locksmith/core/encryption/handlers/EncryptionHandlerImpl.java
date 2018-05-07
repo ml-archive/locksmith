@@ -33,7 +33,7 @@ public class EncryptionHandlerImpl implements EncryptionHandler {
     /**
      * Should this instance of encryption manager use a fingerprint for authentication
      */
-    private boolean useFingerprint = false;
+    private boolean useFingerprint;
     /**
      * Key name for non fingerprint key
      */

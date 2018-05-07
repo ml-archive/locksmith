@@ -1,7 +1,6 @@
 package dk.nodes.locksmith.core.fingerprint;
 
 import android.app.AlertDialog;
-import android.app.KeyguardManager;
 import android.content.Context;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
@@ -16,6 +15,7 @@ import android.view.View;
 
 import dk.nodes.locksmith.core.Locksmith;
 import dk.nodes.locksmith.core.exceptions.LocksmithException;
+import dk.nodes.locksmith.core.manager.FingerprintHardwareManager;
 import dk.nodes.locksmith.core.models.FingerprintDialogEvent;
 import dk.nodes.locksmith.core.models.OnFingerprintDialogEventListener;
 
@@ -27,26 +27,14 @@ public abstract class FingerprintAlertDialogBase extends AlertDialog {
     // Callbacks
     private FingerprintAuthenticationCallback fingerprintAuthenticationCallback = new FingerprintAuthenticationCallback();
     // Fingerprint Related Stuff
-    private KeyguardManager keyguardManager;
-    private FingerprintManager fingerprintManager;
+    private FingerprintHardwareManager fingerprintHardwareManager;
     private FingerprintCryptManager cryptManager;
     private CancellationSignal cancellationSignal;
 
     public FingerprintAlertDialogBase(@NonNull Context context) {
         super(context);
 
-        keyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
-        fingerprintManager = (FingerprintManager) context.getSystemService(Context.FINGERPRINT_SERVICE);
-
-        inflateView();
-    }
-
-
-    public FingerprintAlertDialogBase(@NonNull Context context, int themeResId) {
-        super(context, themeResId);
-
-        keyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
-        fingerprintManager = (FingerprintManager) context.getSystemService(Context.FINGERPRINT_SERVICE);
+        this.fingerprintHardwareManager = new FingerprintHardwareManager(context);
 
         inflateView();
     }
@@ -81,40 +69,36 @@ public abstract class FingerprintAlertDialogBase extends AlertDialog {
             return;
         }
 
-        if (!keyguardManager.isDeviceSecure()) {
-            if (onFingerprintDialogEventListener != null) {
-                onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR_SECURE);
-            }
+        FingerprintHardwareManager.State state = fingerprintHardwareManager.checkHardware();
 
-            dismiss();
-            return;
+        switch (state) {
+            case ERROR_INSECURE:
+                if (onFingerprintDialogEventListener != null) {
+                    onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR_SECURE);
+                }
+                dismiss();
+                return;
+            case ERROR_HARDWARE:
+                if (onFingerprintDialogEventListener != null) {
+                    onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR_HARDWARE);
+                }
+                dismiss();
+                return;
+            case ERROR_NO_FINGERPRINTS:
+                if (onFingerprintDialogEventListener != null) {
+                    onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR_ENROLLMENT);
+                }
+                dismiss();
+                return;
+            case OK:
+                authenticate();
         }
-
-        if (!fingerprintManager.isHardwareDetected()) {
-            if (onFingerprintDialogEventListener != null) {
-                onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR_HARDWARE);
-            }
-
-            dismiss();
-            return;
-        }
-
-        if (!fingerprintManager.hasEnrolledFingerprints()) {
-            if (onFingerprintDialogEventListener != null) {
-                onFingerprintDialogEventListener.onFingerprintEvent(FingerprintDialogEvent.ERROR_ENROLLMENT);
-            }
-
-            dismiss();
-            return;
-        }
-
-        authenticate();
     }
 
     private void authenticate() {
         cancellationSignal = new CancellationSignal();
         FingerprintManager.CryptoObject cryptoObject = cryptManager.getCryptoObject();
-        fingerprintManager.authenticate(cryptoObject, cancellationSignal, 0, fingerprintAuthenticationCallback, null);
+        fingerprintHardwareManager.authenticate(cryptoObject, cancellationSignal, 0, fingerprintAuthenticationCallback, null);
     }
 
     @Override
