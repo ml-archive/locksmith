@@ -5,7 +5,8 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 
-import dk.nodes.locksmith.core.encryption.EncryptionManager;
+import dk.nodes.locksmith.core.encryption.manager.EncryptionManager;
+import dk.nodes.locksmith.core.encryption.manager.EncryptionManagerImpl;
 import dk.nodes.locksmith.core.exceptions.LocksmithException;
 import dk.nodes.locksmith.core.fingerprint.FingerprintDialogBuilder;
 import dk.nodes.locksmith.core.manager.FingerprintHardwareManager;
@@ -46,10 +47,10 @@ public class Locksmith {
     private Locksmith(Context context, LocksmithConfiguration locksmithConfiguration) {
         this.locksmithConfiguration = locksmithConfiguration;
 
-        this.encryptionManager = new EncryptionManager(context, false);
+        this.encryptionManager = new EncryptionManagerImpl(context, false);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            this.fingerprintEncryptionManager = new EncryptionManager(context, true);
+            this.fingerprintEncryptionManager = new EncryptionManagerImpl(context, true);
             this.fingerprintHardwareManager = new FingerprintHardwareManager(context);
         }
     }

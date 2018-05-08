@@ -1,4 +1,4 @@
-package dk.nodes.locksmith.core.encryption;
+package dk.nodes.locksmith.core.encryption.handlers;
 
 import dk.nodes.locksmith.core.exceptions.LocksmithException;
 
