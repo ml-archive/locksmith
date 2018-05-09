@@ -12,7 +12,7 @@ import dk.nodes.locksmith.core.util.HashingUtils;
 public class EncryptedPreferences {
     private SharedPreferences sharedPreferences;
 
-    EncryptedPreferences(Context context, String name, int mode) {
+    public EncryptedPreferences(Context context, String name, int mode) {
         this.sharedPreferences = context.getSharedPreferences(name, mode);
     }
 
