@@ -19,7 +19,7 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.security.auth.x500.X500Principal;
 
-import dk.nodes.locksmith.core.exceptions.LocksmithCreationException;
+import dk.nodes.locksmith.core.exceptions.LocksmithException;
 
 public class RsaEncryptionHelper {
     private static final String AndroidKeyStore = "AndroidKeyStore";
@@ -32,12 +32,12 @@ public class RsaEncryptionHelper {
     private int RSA_BIT_LENGTH = 2048;
 
 
-    public RsaEncryptionHelper(Context context) throws LocksmithCreationException {
+    public RsaEncryptionHelper(Context context) throws LocksmithException {
         this.context = context;
         loadRsaKeys();
     }
 
-    private void loadRsaKeys() throws LocksmithCreationException {
+    private void loadRsaKeys() throws LocksmithException {
         try {
             KeyStore keyStore;
 
@@ -71,8 +71,8 @@ public class RsaEncryptionHelper {
 
             rsaPrivate = rsaKey.getPrivateKey();
             rsaPublic = rsaKey.getCertificate().getPublicKey();
-        } catch (Exception exception) {
-            throw new LocksmithCreationException(exception);
+        } catch (Exception e) {
+            throw new LocksmithException(LocksmithException.Type.Initiation, e);
         }
     }
 
@@ -116,15 +116,15 @@ public class RsaEncryptionHelper {
         return bytes;
     }
 
-    private Cipher getCipher() throws LocksmithCreationException {
+    private Cipher getCipher() throws LocksmithException {
         try {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) { // below android m
                 return Cipher.getInstance(RSA_MODE, "AndroidOpenSSL"); // error in android 6: InvalidKeyException: Need RSA private or public key
             } else { // android m and above
                 return Cipher.getInstance(RSA_MODE, "AndroidKeyStoreBCWorkaround"); // error in android 5: NoSuchProviderException: Provider not available: AndroidKeyStoreBCWorkaround
             }
-        } catch (Exception exception) {
-            throw new LocksmithCreationException(exception);
+        } catch (Exception e) {
+            throw new LocksmithException(LocksmithException.Type.Initiation, e);
         }
     }
 }

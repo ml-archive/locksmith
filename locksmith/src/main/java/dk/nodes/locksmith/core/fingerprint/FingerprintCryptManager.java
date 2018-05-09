@@ -21,7 +21,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
-import dk.nodes.locksmith.core.exceptions.LocksmithCreationException;
+import dk.nodes.locksmith.core.exceptions.LocksmithException;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class FingerprintCryptManager {
@@ -33,14 +33,14 @@ public class FingerprintCryptManager {
 
     private String KEY_NAME_FINGERPRINT = "LockSmithFingerprintKey";
 
-    FingerprintCryptManager() throws LocksmithCreationException {
+    FingerprintCryptManager() throws LocksmithException {
         try {
             generateKey();
             getCipher();
             generateCipher();
             generateCypherObject();
         } catch (Exception e) {
-            throw new LocksmithCreationException(e);
+            throw new LocksmithException(LocksmithException.Type.Initiation, e);
         }
     }
 

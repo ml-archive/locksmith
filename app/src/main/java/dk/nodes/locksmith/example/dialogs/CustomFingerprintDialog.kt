@@ -1,4 +1,4 @@
-package dk.nodes.locksmith.example
+package dk.nodes.locksmith.example.dialogs
 
 import android.content.Context
 import android.os.Build
@@ -9,8 +9,8 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import dk.nodes.locksmith.core.fingerprint.FingerprintAlertDialogBase
-import dk.nodes.locksmith.core.models.FingerprintDialogEvent
 import dk.nodes.locksmith.core.models.OnFingerprintDialogEventListener
+import dk.nodes.locksmith.example.R
 
 @RequiresApi(Build.VERSION_CODES.M)
 class CustomFingerprintDialog(context: Context) : FingerprintAlertDialogBase(context) {
@@ -54,7 +54,7 @@ class CustomFingerprintDialog(context: Context) : FingerprintAlertDialogBase(con
         btnUsePassword.setOnClickListener {
             onUsePasswordBtnListener?.invoke()
         }
-        
+
     }
 
     override fun getDialogLayout(): Int {
@@ -95,9 +95,7 @@ class CustomFingerprintDialog(context: Context) : FingerprintAlertDialogBase(con
         tvMessage.setTextAppearance(styleRes)
     }
 
-    fun setOnFingerprintDialogEventListener(listener: (FingerprintDialogEvent) -> Unit) {
-        this.onFingerprintDialogEventListener = OnFingerprintDialogEventListener {
-            listener(it)
-        }
+    fun setOnFingerprintDialogEventListener(listener: OnFingerprintDialogEventListener) {
+        this.onFingerprintDialogEventListener = listener
     }
 }

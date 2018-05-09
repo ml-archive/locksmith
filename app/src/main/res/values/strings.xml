@@ -19,4 +19,12 @@
     <string name="errorInvalidData">Data is not valid encrypted data</string>
     <string name="errorGeneric">Unable to complete action</string>
     <string name="errorUnsupportedAndroidVersion">Error: Unsupported android version.</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="enable_custom_dialog">Enable Custom Dialog</string>
+    <string name="enter_data_to_be_encrypted">Enter data to be encrypted</string>
+    <string name="decrypt">Decrypt</string>
+    <string name="encrypt">Encrypt</string>
+    <string name="result">Result</string>
 </resources>

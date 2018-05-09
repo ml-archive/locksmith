@@ -1,122 +1,133 @@
 package dk.nodes.locksmith.core;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 
-import dk.nodes.locksmith.core.encryption.EncryptionManager;
-import dk.nodes.locksmith.core.exceptions.LocksmithCreationException;
-import dk.nodes.locksmith.core.exceptions.LocksmithEncryptionException;
-import dk.nodes.locksmith.core.fingerprint.FingerprintDialogBase;
+import dk.nodes.locksmith.core.encryption.manager.EncryptionManager;
+import dk.nodes.locksmith.core.encryption.manager.EncryptionManagerImpl;
+import dk.nodes.locksmith.core.exceptions.LocksmithException;
 import dk.nodes.locksmith.core.fingerprint.FingerprintDialogBuilder;
+import dk.nodes.locksmith.core.manager.FingerprintHardwareManager;
+import dk.nodes.locksmith.core.models.LocksmithConfiguration;
 
-@SuppressLint("StaticFieldLeak")
 public class Locksmith {
-    private static Locksmith locksmith;
+    public static Locksmith instance;
+
+    public static void init(Context context, LocksmithConfiguration locksmithConfiguration) {
+        instance = new Locksmith(context, locksmithConfiguration);
+    }
 
     public static Locksmith getInstance() {
-        return locksmith;
+        return instance;
     }
 
-    private boolean useFingerprint = false;
-    private int keyValidityDuration = 120;
-    private Context context;
+    /**
+     * Contains our locksmith configuration
+     */
 
-    private EncryptionManager encryptionManager = new EncryptionManager();
+    private LocksmithConfiguration locksmithConfiguration;
 
-    public void init() throws LocksmithCreationException {
-        encryptionManager.init(context);
+    /**
+     * Our basic encryption manager
+     */
+
+    private EncryptionManager encryptionManager;
+
+    /**
+     * Our Fingerprint Encryption Manager (Can be null for API 23 and below)
+     */
+
+    private EncryptionManager fingerprintEncryptionManager;
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    private FingerprintHardwareManager fingerprintHardwareManager;
+
+    private Locksmith(Context context, LocksmithConfiguration locksmithConfiguration) {
+        this.locksmithConfiguration = locksmithConfiguration;
+
+        this.encryptionManager = new EncryptionManagerImpl(context, false);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            this.fingerprintEncryptionManager = new EncryptionManagerImpl(context, true);
+            this.fingerprintHardwareManager = new FingerprintHardwareManager(context);
+        }
     }
 
-    // String Encrypt/Decrypt
+    /**
+     * Initialization for our fingerprint encryption manager
+     *
+     * @throws LocksmithException
+     */
 
-    public String encryptString(String data) throws LocksmithEncryptionException {
-        return encryptionManager.encryptString(data);
+    @RequiresApi(Build.VERSION_CODES.M)
+    public void initFingerprint() throws LocksmithException {
+        fingerprintEncryptionManager.init();
     }
 
-    public String decryptString(String data) throws LocksmithEncryptionException {
-        return encryptionManager.decryptString(data);
+    /**
+     * Initialization for our basic encryption
+     *
+     * @throws LocksmithException
+     */
+
+    public void init() throws LocksmithException {
+        encryptionManager.init();
     }
 
-    // Int Encrypt/Decrypt
 
-    public String encryptInt(int data) throws LocksmithEncryptionException {
-        return encryptionManager.encryptInt(data);
+    /**
+     * Returns whether the device can use the fingerprint api
+     *
+     * @return Boolean value for fingerprint availability
+     */
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public FingerprintHardwareManager.State canUseFingerprint() {
+        return fingerprintHardwareManager.checkHardware();
     }
 
-    public int decryptInt(String data) throws LocksmithEncryptionException {
-        return encryptionManager.decryptInt(data);
+    /**
+     * Returns our normal encryption manager
+     *
+     * @return {@link EncryptionManager}
+     */
+
+    @NonNull
+    public EncryptionManager getEncryptionManager() {
+        return encryptionManager;
     }
 
-    // Boolean Encrypt/Decrypt
+    /**
+     * Returns an instance of our fingerprint EncryptionManager
+     *
+     * @return {@link EncryptionManager} instance
+     */
 
-    public String encryptBoolean(boolean data) throws LocksmithEncryptionException {
-        return encryptionManager.encryptBoolean(data);
+    @NonNull
+    @RequiresApi(Build.VERSION_CODES.M)
+    public EncryptionManager getFingerprintEncryptionManager() {
+        return fingerprintEncryptionManager;
     }
 
-    public boolean decryptBoolean(String data) throws LocksmithEncryptionException {
-        return encryptionManager.decryptBoolean(data);
-    }
-
-    // Float Encrypt/Decrypt
-
-    public String encryptFloat(float data) throws LocksmithEncryptionException {
-        return encryptionManager.encryptFloat(data);
-    }
-
-    public float decryptFloat(String data) throws LocksmithEncryptionException {
-        return encryptionManager.decryptFloat(data);
-    }
-
-    // Long Encrypt/Decrypt
-
-    public String encryptLong(long data) throws LocksmithEncryptionException {
-        return encryptionManager.encryptLong(data);
-    }
-
-    public long decryptLong(String data) throws LocksmithEncryptionException {
-        return encryptionManager.decryptLong(data);
-    }
-
+    /**
+     * Returns a builder for a simple Fingerprint Dialog
+     *
+     * @param context Context must be provided to create the dialog
+     * @return {@link FingerprintDialogBuilder} instance
+     */
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public FingerprintDialogBuilder getFingerprintDialogBuilder(Context context) {
         return new FingerprintDialogBuilder(context);
     }
 
-    // Getters
-
-    public boolean isUseFingerprint() {
-        return useFingerprint;
-    }
-
-    public int getKeyValidityDuration() {
-        return keyValidityDuration;
-    }
-
-    //Builder
-
-    public static class Builder {
-        public Builder(Context context) {
-            locksmith = new Locksmith();
-            locksmith.context = context;
-        }
-
-        @RequiresApi(Build.VERSION_CODES.M)
-        public Builder setKeyValidityDuration(int seconds) {
-            locksmith.keyValidityDuration = seconds;
-            return this;
-        }
-
-        @RequiresApi(Build.VERSION_CODES.M)
-        public Builder setUseFingerprint(boolean useFingerprint) {
-            locksmith.useFingerprint = useFingerprint;
-            return this;
-        }
-
-        public Locksmith build() {
-            return locksmith;
-        }
+    /**
+     * Returns the current configuration
+     *
+     * @return {@link LocksmithConfiguration}
+     */
+    public LocksmithConfiguration getLocksmithConfiguration() {
+        return locksmithConfiguration;
     }
 }
