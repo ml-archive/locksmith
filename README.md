@@ -7,7 +7,7 @@ Nodes Encryption library using the Android KeyStore
 ## 🔧 Installation
 Installation is pretty simple just add the following line to your gradle dependecies (See badge for current version)
 ```
-  implementation 'dk.nodes.locksmith.core:x.x.+'
+  implementation 'dk.nodes.locksmith:core:x.x.+'
 ```
 
 ## Description
