@@ -2,6 +2,7 @@ package dk.nodes.locksmith.core.util;
 
 import android.util.Base64;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -20,6 +21,10 @@ public class HashingUtils {
 
     public static String sha512AsBase64(String value) {
         return bytesToBase64(hashString("SHA-512", value));
+    }
+
+    public static byte[] sha256AsByteArray(String value) {
+        return hashString("SHA-256", value);
     }
 
     public static String sha256(String value) {
@@ -70,14 +75,17 @@ public class HashingUtils {
 
     public static String hmacSha256(String password, String value) throws LocksmithException {
         try {
+            return hmacSha256(password.getBytes("UTF-8"), value);
+        } catch (UnsupportedEncodingException e) {
+            throw new LocksmithException(LocksmithException.Type.EncryptionError, e);
+        }
+    }
+
+    public static String hmacSha256(byte[] password, String value) throws LocksmithException {
+        try {
             Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
 
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] pWBytes = password.getBytes("UTF-8");
-            digest.update(pWBytes);
-            byte[] key = digest.digest();
-
-            SecretKeySpec secret_key = new SecretKeySpec(key, "HmacSHA256");
+            SecretKeySpec secret_key = new SecretKeySpec(password, "HmacSHA256");
             sha256_HMAC.init(secret_key);
 
             byte[] bytes = sha256_HMAC.doFinal(value.getBytes("UTF-8"));
@@ -86,4 +94,5 @@ public class HashingUtils {
             throw new LocksmithException(LocksmithException.Type.EncryptionError, e);
         }
     }
+
 }
