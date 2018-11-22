@@ -12,7 +12,7 @@ allprojects { ext."signing.password" = System.getenv('password') }
 
 // Artifact settings
 def _group = 'dk.nodes.locksmith'
-def _version = '1.2.1'
+def _version = '1.2.2'
 def _archivesBaseName = 'core'
 
 def _name = 'Locksmith Encryption Library'
