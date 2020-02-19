@@ -123,7 +123,8 @@ class FingerprintEncryptionFragment : Fragment(), OnFingerprintDialogEventListen
                 showSnackbar(R.string.errorInvalidData)
             }
             EncryptionError -> {
-                showSnackbar(R.string.errorGeneric)
+                showDialog()
+                Log.e(tag, "Encryption error")
             }
             Generic         -> {
                 Log.e(tag, "Generic", e)
