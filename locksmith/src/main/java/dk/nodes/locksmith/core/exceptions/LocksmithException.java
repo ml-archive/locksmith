@@ -1,6 +1,6 @@
 package dk.nodes.locksmith.core.exceptions;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 public class LocksmithException extends Exception {
     @NonNull

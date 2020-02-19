@@ -2,7 +2,7 @@ package dk.nodes.locksmith.core.fingerprint;
 
 import android.content.Context;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 
 import dk.nodes.locksmith.core.models.OnFingerprintDialogEventListener;
 

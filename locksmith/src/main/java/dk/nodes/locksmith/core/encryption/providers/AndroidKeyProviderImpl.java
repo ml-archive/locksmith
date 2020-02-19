@@ -3,7 +3,7 @@ package dk.nodes.locksmith.core.encryption.providers;
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.Key;
