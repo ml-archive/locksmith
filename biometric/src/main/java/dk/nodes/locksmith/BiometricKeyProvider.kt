@@ -1,6 +1,7 @@
 package dk.nodes.locksmith
 
 import android.security.keystore.KeyProperties
+import androidx.biometric.BiometricManager
 import dk.nodes.locksmith.core.encryption.providers.KeyProvider
 import java.security.Key
 import java.security.KeyStore
@@ -17,6 +18,7 @@ object BiometricKeyProvider : KeyProvider {
     }
 
     override fun getKey(): Key {
+
         val keyStore = KeyStore.getInstance("AndroidKeyStore")
 
         // Before the keystore can be accessed, it must be loaded.
