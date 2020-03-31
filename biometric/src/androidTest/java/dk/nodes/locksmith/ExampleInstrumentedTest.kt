@@ -1,4 +1,4 @@
-package dk.nodes.locksmith.core.example
+package dk.nodes.locksmith
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -18,7 +18,7 @@ class ExampleInstrumentedTest {
     @Test
     fun useAppContext() {
         // Context of the app under test.
-        val appContext = InstrumentationRegistry.getTargetContext()
-        assertEquals("dk.nodes.locksmith", appContext.packageName)
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+        assertEquals("dk.nodes.locksmith.test", appContext.packageName)
     }
 }

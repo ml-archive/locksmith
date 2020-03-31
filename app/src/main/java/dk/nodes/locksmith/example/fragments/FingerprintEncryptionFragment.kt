@@ -2,10 +2,10 @@ package dk.nodes.locksmith.example.fragments
 
 import android.os.Build
 import android.os.Bundle
-import android.support.annotation.RequiresApi
-import android.support.annotation.StringRes
-import android.support.design.widget.Snackbar
-import android.support.v4.app.Fragment
+import androidx.annotation.RequiresApi
+import androidx.annotation.StringRes
+import com.google.android.material.snackbar.Snackbar
+import androidx.fragment.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -123,7 +123,8 @@ class FingerprintEncryptionFragment : Fragment(), OnFingerprintDialogEventListen
                 showSnackbar(R.string.errorInvalidData)
             }
             EncryptionError -> {
-                showSnackbar(R.string.errorGeneric)
+                showDialog()
+                Log.e(tag, "Encryption error")
             }
             Generic         -> {
                 Log.e(tag, "Generic", e)

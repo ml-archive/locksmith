@@ -1,1 +1,1 @@
-include ':app', ':locksmith'
+include ':app', ':locksmith', ':biometric'

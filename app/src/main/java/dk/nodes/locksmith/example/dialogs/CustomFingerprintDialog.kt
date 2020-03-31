@@ -3,8 +3,8 @@ package dk.nodes.locksmith.example.dialogs
 import android.content.Context
 import android.os.Build
 import android.os.Handler
-import android.support.annotation.RequiresApi
-import android.support.annotation.StyleRes
+import androidx.annotation.RequiresApi
+import androidx.annotation.StyleRes
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
@@ -33,6 +33,7 @@ class CustomFingerprintDialog(context: Context) : FingerprintAlertDialogBase(con
 
 
     private fun setupViews() {
+        val window = window ?: return
         tvTitle = window.findViewById(R.id.dialogCustomFingerprintTvTitle)
         tvDescription = window.findViewById(R.id.dialogCustomFingerprintTvDescription)
         tvSubtitle = window.findViewById(R.id.dialogCustomFingerprintTvSubtitle)

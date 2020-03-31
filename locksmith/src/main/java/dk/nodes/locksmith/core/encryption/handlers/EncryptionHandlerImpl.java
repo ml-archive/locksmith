@@ -69,7 +69,11 @@ public class EncryptionHandlerImpl implements EncryptionHandler {
 
             return result;
         } catch (NullPointerException | InvalidKeyException | BadPaddingException e) {
-            throw new LocksmithException(LocksmithException.Type.EncryptionError, e);
+            if (keyProvider.getKey() == null) {
+                throw new LocksmithException(LocksmithException.Type.Uninitiated, e);
+            } else {
+                throw new LocksmithException(LocksmithException.Type.EncryptionError, e);
+            }
         } catch (IllegalBlockSizeException e) {
             if (e.getCause() instanceof KeyStoreException) {
                 throw new LocksmithException(LocksmithException.Type.Unauthenticated, e);
